@@ -12,7 +12,7 @@ csl: https://www.zotero.org/styles/apa
 bibliography: library.bib
 editor: source
 execute:
-  cache: true
+  cache: false
 format:
   html:
     standalone: true
@@ -83,14 +83,19 @@ data_wtf <- data %>%
       location,
       levels = c("PH Schwäbisch Gmünd", "PH Ludwigsburg")
     ),
-    treatment = factor(ifelse(intervention == "control", "control", "intervention"))
+    treatment = factor(ifelse(
+      intervention == "control",
+      "control",
+      "intervention"
+    ))
   )
 
 ## define contrast Control vs Exp1+Exp2 - vermutlich bessere version, da die Estimates "stimmen"
 mat <- cbind(
   c(1 / 3, 1 / 3, 1 / 3), # Durchschnitt aller 3 Gruppen
   c(-1, .5, .5), # Vergleich Control vs Mittel der beiden Interventions-Gruppen
-  c(0, -1, 1)) # Vergleich Sprache vs MINT
+  c(0, -1, 1)
+) # Vergleich Sprache vs MINT
 contrasts.CvsExp <- solve(t(mat))[, -1]
 colnames(contrasts.CvsExp) <- c("-c+STEM_language", "-STEM+language")
 contrasts(data_wtf$intervention) <- contrasts.CvsExp
@@ -182,13 +187,13 @@ data_participants <- data %>%
 The study involved pre-service teachers from two universities of education in Baden-Württemberg, Germany. Participants were divided into a **treatment group** consisting of two intervention groups (STEM and language course), and a **control group**.
 Students in the treatment groups self-selected the courses "AI in STEM/Language Education" as part of their compulsory elective studies. The control group was recruited from other STEM courses at University 1 during the same semester. 
 
-In total, $N=`r data_all %>% filter(time=="pre") %>% nrow()`$ students originally participated in the study ($N_c=`r data_all %>% filter(time=="pre", intervention=="control") %>%nrow`$ in the control group, $N_s= `r data_all %>% filter(time=="pre", intervention=="stem") %>%nrow `$ in the STEM course, and $N_l=`r data_all %>% filter(time=="pre", intervention=="language") %>%nrow `$ in the language course), of which $n=`r data_participants$n %>% sum`$ completed both pre- and the posttest and were included in the analyses ($n_c = `r data_participants%>%filter(intervention=="control") %>% select(n)%>%sum`$, $n_s = `r data_participants%>%filter(intervention=="stem") %>% select(n)%>%sum`$, $n_l = `r data_participants%>%filter(intervention=="language") %>% select(n) %>% sum`$).
+In total, $N=`r data_all %>% filter(time=="pre") %>% nrow()`$ students originally participated in the study ($N_c=`r data_all %>% filter(time=="pre", intervention=="control") %>% nrow()`$ in the control group, $N_s= `r data_all %>% filter(time=="pre", intervention=="stem") %>%nrow() `$ in the STEM course, and $N_l=`r data_all %>% filter(time=="pre", intervention=="language") %>%nrow `$ in the language course), of which $n=`r data_participants$n %>% sum`$ completed both pre- and the posttest and were included in the analyses ($n_c = `r data_participants%>%filter(intervention=="control") %>% select(n)%>%sum`$, $n_s = `r data_participants%>%filter(intervention=="stem") %>% select(n)%>%sum`$, $n_l = `r data_participants%>%filter(intervention=="language") %>% select(n) %>% sum`$).
 
 Unfortunately, we observed a high drop-out rate between the pre- and posttest. We attribute this to several factors: First, the posttests were conducted in class close  (one to two weeks) to the examination period, resulting in students not attending the in-person posttest sessions. For the control group, some lecturers executed the posttest during their teaching, while others did not. We suspect a high drop-out at the posttest for the control group due to both factors: students not attending the sessions close to the examination week and not conducting the tests at home or in their free study time.
 
 
-Descriptive statistics of students' demographics and pretest scores are presented in [@tbl-participants]. The final sample size included in the analyses was $n=76$, aged between $`r data_pre$age%>%min`$ and $`r data_pre$age %>% max`$ years ($M=`r data_pre$age%>%mean %>% round(2)`$, $SD=`r data_pre$age%>%sd%>%round(2)`$), of which $`r data_pre%>%filter(gender=="Weiblich")%>%nrow`$ identified as female and $`r data_pre%>%filter(gender=="Männlich")%>%nrow`$ as male.
-The students were enrolled in semester $`r data_pre$semester%>%min`$ to $`r data_pre$semester%>%max`$ ($M=`r data_pre$semester%>%mean%>%round(2)`$, $SD=`r data_pre$semester%>%sd%>%round(2)`$). Of these, $`r data_pre%>%filter(students=="bachelor")%>%nrow`$ students were at the Bachelor's level and $`r data_pre%>%filter(students=="master")%>%nrow`$ at the Master's level.
+Descriptive statistics of students' demographics and pretest scores are presented in [@tbl-participants]. The final sample size included in the analyses was $n=76$, aged between $`r data_pre$age %>% min`$ and $`r data_pre$age %>% max`$ years ($M=`r data_pre$age %>% mean %>% round(2)`$, $SD=`r data_pre$age %>% sd %>% round(2)`$), of which $`r data_pre %>% filter(gender=="Weiblich")%>%nrow`$ identified as female and $`r data_pre%>%filter(gender=="Männlich")%>%nrow`$ as male.
+The students were enrolled in semester $`r data_pre$semester %>% min`$ to $`r data_pre$semester %>% max`$ ($M=`r data_pre$semester %>% mean %>% round(2)`$, $SD=`r data_pre$semester%>%sd%>%round(2)`$). Of these, $`r data_pre%>%filter(students=="bachelor") %>% nrow`$ students were at the Bachelor's level and $`r data_pre%>%filter(students=="master")%>%nrow`$ at the Master's level.
 
 
 ```{r table-participants, result = "asis"}
@@ -225,17 +230,17 @@ kable(
     tableby(
       intervention ~
         location +
-          age +
-          gender +
-          semester +
-          students +
-          TK +
-          TCK +
-          TPK +
-          TPACK_total +
-          Ethics +
-          AILIT +
-          PU,
+        age +
+        gender +
+        semester +
+        students +
+        TK +
+        TCK +
+        TPK +
+        TPACK_total +
+        Ethics +
+        AILIT +
+        PU,
       data %>%
         filter(time == "pre") %>%
         mutate(
@@ -260,13 +265,13 @@ kable(
 ### Effect Sizes for Group Differences for Covariates
 ```{r group-differences-effectsizes}
 
-vars_num <- c("age", "semester")      # numeric outcomes
-vars_cat <- c("gender", "students")   # categorical outcomes
+vars_num <- c("age", "semester") # numeric outcomes
+vars_cat <- c("gender", "students") # categorical outcomes
 
 d <- data %>%
   filter(time == "pre") %>%
   mutate(
-    gender   = factor(gender,   labels = c("Female", "Male")),
+    gender = factor(gender, labels = c("Female", "Male")),
     students = factor(students, labels = c("Bachelor", "Master"))
   )
 
@@ -277,8 +282,8 @@ eta_num <- purrr::map_dfr(vars_num, function(v) {
   es <- effectsize::eta_squared(m, partial = TRUE)
   tibble(
     variable = v,
-    effect   = "eta2",
-    value    = es$Eta2[1],
+    effect = "eta2",
+    value = es$Eta2[1],
     interpretation = effectsize::interpret_eta_squared(value) %>% as.character
   )
 })
@@ -286,11 +291,11 @@ eta_num <- purrr::map_dfr(vars_num, function(v) {
 # Cramér's V for categorical outcomes
 cv_cat <- purrr::map_dfr(vars_cat, function(v) {
   tab <- table(d[[v]], d$intervention)
-  cv  <- effectsize::cramers_v(tab)
+  cv <- effectsize::cramers_v(tab)
   tibble(
     variable = v,
-    effect   = "cramers_v",
-    value    = cv$Cramers_v,
+    effect = "cramers_v",
+    value = cv$Cramers_v,
     interpretation = effectsize::interpret_cramers_v(value) %>% as.character
   )
 })
@@ -305,8 +310,8 @@ cohens_d_two_groups <- purrr::map_dfr(vars_num, function(v) {
   es <- effectsize::cohens_d(v, "treatment", d, pooled = TRUE)
   tibble(
     variable = v,
-    effect   = "cohens_d",
-    value    = es$Cohens_d,
+    effect = "cohens_d",
+    value = es$Cohens_d,
     interpretation = effectsize::interpret_cohens_d(value) %>% as.character
   )
 })
@@ -316,14 +321,17 @@ phi_two_groups <- purrr::map_dfr(vars_cat, function(v) {
   phi <- effectsize::phi(tab, adjust = F)
   tibble(
     variable = v,
-    effect   = "phi",
-    value    = phi$phi,
+    effect = "phi",
+    value = phi$phi,
     interpretation = effectsize::interpret_phi(value) %>% as.character
   )
 })
 
 # combine
-effectsizes_covariates__two_groups <- bind_rows(cohens_d_two_groups, phi_two_groups) %>%
+effectsizes_covariates__two_groups <- bind_rows(
+  cohens_d_two_groups,
+  phi_two_groups
+) %>%
   mutate(
     value = apa_num(value)
   )
@@ -333,7 +341,7 @@ effectsizes_covariates__two_groups <- bind_rows(cohens_d_two_groups, phi_two_gro
 
 ### Translation Process
 The Intelligent-TPACK, originally developed by @celik2023, is widely used to assess teachers’ knowledge for pedagogical and ethical AI use based on the technological, pedagogical, and content knowledge (TPACK) framework.
-However, no empirically validated German translations of the Intelligent-TPACK exists. While some studies translate and use subsets of the Intelligent-TPACK [e.g., @mah.gross2024], there is no validated German version of the full instrument. 
+However, while some studies translate and use subsets of the Intelligent-TPACK [e.g., @mah.gross2024], no empirically validated German translations of the full Intelligent-TPACK exists. 
 
 Therefore, for the Intelligent-TPACK by @celik2023 as well as for items from the AI ethics subscale from @chiu.ahmad.ea2024, we translated the original items in a participative multi-step process involving not just experts from the fields of computer science and education, but also (pre-service) teachers.
 For this, we applied the *Modified Direct Translation* that includes translators and experts discussing the wording until reaching agreement [@behling.law2025]: First, seven researchers and experts in AI ED (additionally including one English teacher and one student teacher of Computer Science and English) translated the items independently. Second, we compared all translations and marked the items that received different translations. In a third step, we performed a group workshop with all translators in which the marked items were discussed and dot voting was applied to decide on the most apporopriate translation. Finally, three items that were still marked as questionable were discussed and further adapted with a native English teacher who teaches at University 2.
@@ -341,14 +349,9 @@ For this, we applied the *Modified Direct Translation* that includes translators
 The translation and validation of the Intelligent-TPACK is reported in detail in @authorsinprep.
 
 ## Analysis
-We analyzed the interventions' efficacy in a multilevel analysis approach. To contrast the differences of students' change in the respective outcome measure over time, we implemented a linear mixed-effects regression model for each outcome measure, considering our $3$ factorial design. To account for the panel structure, that is, two test sessions, in the data, we used the random effects (RE) estimation method to estimate treatment effects, following CITATION.
+We analyzed the interventions' efficacy in a multiple linear regression analysis approach. For this, we implemented a one-way ANCOVA for each outcome measure, considering our $3$ factorial design. To account for the panel structure, that is, two test sessions, in the data, we used the random effects (RE) estimation method to estimate treatment effects, following CITATION.
 
 The raw data and *R* scripts detailing the analyses can be accessed in the online supplement at <OSF>.
-
-:::{.callout-note}
-Ist unser Design 3- oder 2-faktoriell?
--> wenn treatment 3 Gruppen, dann 3-faktoriell, sonst 2-faktoriell
-:::
 
 We implemented the two-level models with the students at level 1 (individual level) and the University at level 2 (class level). We addressed the clustering of time points within students by including random intercepts for students. The clustering of students within universities was addressed by including a dummy variable for the University. 
 
@@ -394,9 +397,17 @@ For the Intelligent TPACK, AI ethics and perceived usefulness (sub)scales, we ca
 ### Statistical Software
 We performed the statistical analyses in *R* [@R2024] using the following packages:
 *dplyr* [wickham2023:dplyr], *tidyr* [@wickham2024], and *gtools* [@warnes2023] for data wrangling;
-*arsenal* [@heinzen2021], *vtable* [@huntington2023], *modelsummary* [@arel-bundock2022] and *kableExtra* [@zhu2024] for creating tables; *ggplot2* [@wickham2016], *ggsci* [@xiao2024] and *jtools* [@long2022] for plotting; and *lme4* [@bates2015] and *lmerTest* [@kuznetsova2017] for linear mixed-effects regression analyses.
+*arsenal* [@heinzen2021], *vtable* [@huntington2023], *modelsummary* [@arel-bundock2022] and *kableExtra* [@zhu2024] for creating tables; 
+*ggplot2* [@wickham2016], *ggsci* [@xiao2024] and *jtools* [@long2022] for plotting; 
+and the ANCOVA models were estimated using *lm_robust* from the *estimatr* package [@blair2025].
+
+To compute heteroscedasticity-consistent (HC) standard errors, we specified the HC3 estimator, as recommended for small samples [@long2000]. Where applicable, pairwise comparisons were obtained with *emmeans* [@lenth2025].
+::: {.callout-note}
+^ stimmt das? ^
+folgendes ist veraltet: 
 
 We used the *lme4* package [@bates2015] to fit linear mixed-effects models and the *broom.mixed* package [@bolker2024] to extract the results. Degrees of freedom and *p*-values were calculated using the *lmerTest* package [@kuznetsova2017] using Kenward-Roger's approximation for the denominator degrees of freedom. Pairwise comparisons between the treatment groups were computed using the *emmeans* package [@lenth2025].
+:::
 
 
 # Results
@@ -406,8 +417,11 @@ As expected, students attending the STEM course and students from the control gr
 
 The descriptive statistics of students' change in the outcome measures over time per treatment group are listed in  [@fig-ai-lit], [@fig-tpack], and [@fig-pu].
 
-For all outcome measure, we will first report the *main* treatment effect, i.e., the interaction between time and treatment group. Then, we will report the differences between treatment groups, i.e., control vs. intervention groups (STEM and language course), and then contrast the intervention groups, i.e., STEM vs. language course).
+For all outcome measure, we will first report the *main* treatment effect, i.e., the interaction between time and treatment group. Then, we will report the differences between treatment groups, i.e., control vs. intervention groups (STEM and language course), and then contrast the intervention groups, i.e., STEM vs. language course.
 
+::: {.callout-note}
+folgendes ist veraltet: 
+:::
 The results of the linear mixed-effects models for each outcome measure are presented in [@tbl-lmer-ailit-summary], [@tbl-lmer-tpack-summary], and [@tbl-lmer-pu-summary].
 
 ## Effect Sizes
@@ -714,14 +728,27 @@ To compute heteroscedasticity-consistent (HC) standard errors, we used the *lm_r
 # reshape data to wide format for ancova
 data_wide <- data %>%
   pivot_wider(
-    id_cols = c(code, intervention, group, gender, semester, students, location),
+    id_cols = c(
+      code,
+      intervention,
+      group,
+      gender,
+      semester,
+      students,
+      location
+    ),
     names_from = time,
     values_from = all_of(outcomes)
-  ) %>% mutate(
+  ) %>%
+  mutate(
     # scale the posttest score so that the estimates are approximations of Cohen's d
     across(all_of(outcomes %>% paste0("_post")), scale),
 
-    treatment = factor(ifelse(intervention == "control", "control", "intervention"))
+    treatment = factor(ifelse(
+      intervention == "control",
+      "control",
+      "intervention"
+    ))
   )
 
 contrasts.treatment <- cbind(c(-1 / 2, 1 / 2))
@@ -801,7 +828,7 @@ if (!is_word) {
 ```{r ailit-ancova-between-contrasts}
 # pairwise between contrasts (no multiplicity adjustment)
 ailit_ancova_between_contrasts <- lapply(ancovas[1:3], function(m) {
-  emmeans(m, ~ intervention) %>%
+  emmeans(m, ~intervention) %>%
     contrast(interaction = "pairwise", adjust = "none")
 })
 if (!is_word) {
@@ -843,10 +870,11 @@ Due to the very small (insignificant) difference between the distribution of gen
 ```{r effectsizes-covariates-two-groups}
 
 # perform chi square for categorical variables
-chisquare_covariates_two_groups <- vars_cat  %>% lapply(function(v) {
-  tab <- table(d[[v]], d$treatment)
-  chisq <- chisq.test(tab)
-})
+chisquare_covariates_two_groups <- vars_cat %>%
+  lapply(function(v) {
+    tab <- table(d[[v]], d$treatment)
+    chisq <- chisq.test(tab)
+  })
 names(chisquare_covariates_two_groups) <- vars_cat
 
 chisquare_covariates_two_groups
@@ -874,7 +902,7 @@ modelsummary_models(
 ```{r reflection}
 refs <- c("Ref", list_items_ref %>% unlist)
 lms_reflection <- lapply(
-  refs,                        # a character vector of column names
+  refs, # a character vector of column names
   function(x) {
     f <- as.formula(paste(x, "~ intervention + gender + semester"))
     lm(f, data %>% filter(time == "post"))
@@ -885,13 +913,14 @@ modelsummary_models(lms_reflection)
 
 # pairwise between contrasts (no multiplicity adjustment)
 refl_between_contrasts <- lapply(lms_reflection, function(m) {
-  emmeans(m, ~ intervention) %>%
+  emmeans(m, ~intervention) %>%
     contrast(interaction = "pairwise", adjust = "none")
 })
 if (!is_word) {
   print(refl_between_contrasts)
 }
 ```
+
 ```{r plot-reflection, fig.height=8}
 # for all of refs, do a boxplot of ref ~ intervention using ggplot2
 data_long_refl <- data %>%
@@ -919,7 +948,7 @@ wolke_theme <-
     legend.font.size = 12
   )
 
-ggplot(data_long_refl, aes(x = intervention, y = score, color=intervention)) +
+ggplot(data_long_refl, aes(x = intervention, y = score, color = intervention)) +
   geom_boxplot() +
   geom_jitter(width = 0.1, alpha = 0.5) +
   # add mean as diamond shape
@@ -1018,19 +1047,43 @@ modelsummary_models(
 ### In- and Exclusion of University as Covariate
 ```{r}
 
-modelsummary_models(list(ancovas[["AILITWolke"]], 
-lm_robust(AILITWolke_post ~ intervention + pretest + gender + semester + location, data_wide %>% mutate(pretest = AILITWolke_pre), se_type="HC3"),
-lm(AILITWolke_post ~ intervention + pretest + gender + semester, data_wide %>% mutate(pretest = AILITWolke_pre)),
-lm_robust(AILITWolke_post ~ treatment + pretest + gender + semester , data_wide %>% mutate(pretest = AILITWolke_pre), se_type="HC3")),
-  output = modelsummary_output)
+modelsummary_models(
+  list(
+    ancovas[["AILITWolke"]],
+    lm_robust(
+      AILITWolke_post ~ intervention + pretest + gender + semester + location,
+      data_wide %>% mutate(pretest = AILITWolke_pre),
+      se_type = "HC3"
+    ),
+    lm(
+      AILITWolke_post ~ intervention + pretest + gender + semester,
+      data_wide %>% mutate(pretest = AILITWolke_pre)
+    ),
+    lm_robust(
+      AILITWolke_post ~ treatment + pretest + gender + semester,
+      data_wide %>% mutate(pretest = AILITWolke_pre),
+      se_type = "HC3"
+    )
+  ),
+  output = modelsummary_output
+)
 ```
 
 ## LMERs with Standardized Outcomes
 ```{r lmers-standardized}
-modelsummary_models(list(lmers_prepost_all[["AILITWolke"]],
-lmer(AILITWolke~ intervention * time +(1|code), data),
-lmer(AILITWolke~ intervention * time +(1|code), data %>% group_by(time) %>% mutate(AILITWolke = scale(AILITWolke)) %>% ungroup()))
-, output = modelsummary_output
+modelsummary_models(
+  list(
+    lmers_prepost_all[["AILITWolke"]],
+    lmer(AILITWolke ~ intervention * time + (1 | code), data),
+    lmer(
+      AILITWolke ~ intervention * time + (1 | code),
+      data %>%
+        group_by(time) %>%
+        mutate(AILITWolke = scale(AILITWolke)) %>%
+        ungroup()
+    )
+  ),
+  output = modelsummary_output
 )
 ```
 
@@ -1043,18 +1096,18 @@ If we used cluster-robust standard errors in the lmer models, the SEs become a l
 ```{r tbl-lmer-robust-se}
 #| tbl-cap: "Summary of Linear Mixed-Effects Models with Cluster-Robust Standard Errors and Satterthwait-Corrected Tests Using clubSandwich::vcovCR with CR2."
 
-
 # Cluster-robust vcov (CR2 is usually recommended)
-# However, modelsummary itself doesn't directly implement Satterthwaite tests; it relies on the vcov matrix for standard errors and calculates tests using default methods. 
+# However, modelsummary itself doesn't directly implement Satterthwaite tests; it relies on the vcov matrix for standard errors and calculates tests using default methods.
 
 modelsummary_models(lmers_prepost_all, vcov = "CR2")
 
 # Alternative, which is not needed if modelsummary correctly derives the cluster variable from the model (which is the case for the random intercept of code)
-vcov_list <- outcomes %>% lapply(function(o) {
-  m <- lmers_prepost_all[[o]]
-  # cluster-robust variance estimator with CR2 small-sample correction
-  clubSandwich::vcovCR(m, cluster = data$code, type = "CR2")
-})
+vcov_list <- outcomes %>%
+  lapply(function(o) {
+    m <- lmers_prepost_all[[o]]
+    # cluster-robust variance estimator with CR2 small-sample correction
+    clubSandwich::vcovCR(m, cluster = data$code, type = "CR2")
+  })
 # modelsummary_models(lmers_prepost_all, vcov = vcov_list)
 ```
 
@@ -1062,10 +1115,14 @@ vcov_list <- outcomes %>% lapply(function(o) {
 ```{r tbl-lmer-robust-se-satt}
 #| tbl-cap: "Summary of Linear Mixed-Effects Models with Cluster-Robust Standard Errors and Satterthwaite-Corrected Tests Using coef_tests."
 
-
 # Extract coefficient tests with cluster-robust CR2 SE and Satterthwaite correction
 coef_tests <- lapply(lmers_prepost_all, function(model) {
-  clubSandwich::coef_test(model, vcov = "CR2", cluster = data$code, test = "Satterthwaite")
+  clubSandwich::coef_test(
+    model,
+    vcov = "CR2",
+    cluster = data$code,
+    test = "Satterthwaite"
+  )
 })
 # Simple custom class for robust results
 create_robust_lmer <- function(model, coef_test_result) {
@@ -1076,10 +1133,10 @@ create_robust_lmer <- function(model, coef_test_result) {
     ),
     class = c("robust_lmer", class(model))
   )
-  
+
   # Copy important attributes from the original model
   attr(robust_obj, "formula") <- formula(model)
-  
+
   return(robust_obj)
 }
 
@@ -1099,7 +1156,7 @@ tidy.robust_lmer <- function(x, ...) {
 # Simple glance method - get basic stats + R²
 glance.robust_lmer <- function(x, ...) {
   model <- x$model
-  
+
   # Basic model stats
   basic_stats <- data.frame(
     nobs = nobs(model),
@@ -1108,12 +1165,12 @@ glance.robust_lmer <- function(x, ...) {
     logLik = as.numeric(logLik(model)),
     Std.Errors = "CR2"
   )
-  
+
   # Add R² marginal and conditional
-    # Add R² using custom names that will display as you want
+  # Add R² using custom names that will display as you want
   if (requireNamespace("performance", quietly = TRUE)) {
     r2 <- performance::r2(model)
-    basic_stats$`R2 Marg.` <- r2$R2_marginal %>% round(3)       
+    basic_stats$`R2 Marg.` <- r2$R2_marginal %>% round(3)
     basic_stats$`R2 Cond.` <- r2$R2_conditional %>% round(3)
   }
   return(basic_stats)

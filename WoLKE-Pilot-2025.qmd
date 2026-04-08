@@ -12,7 +12,7 @@ csl: https://www.zotero.org/styles/apa
 bibliography: library.bib
 editor: source
 execute:
-  cache: true
+  cache: false
 format:
   html:
     standalone: true
@@ -31,7 +31,7 @@ format:
 ## Load Libraries
 
 ```{r load-libraries-and-functions}
-renv::load()
+# renv::load()
 #| output: false
 ## Pfad/Utilities
 library(this.path)
@@ -69,7 +69,10 @@ source(file = "functions.r") # all outsourced funtions
 
 ```{r load-data}
 # Set working directory to the script's location
-setwd(this.path::this.dir())
+# setwd(this.path::this.dir())
+setwd(
+  "C:/Users/bened/UT Cloud/WoLKE MWK KI-Tools 2023 - General/09_Studien/5_Evaluation/Evaluation - SoSe25/R/WoLKE-Pilot-2025"
+)
 ### Load Data
 # load csv -> df_pre
 source("./data/import_ki-lehramt.r")
@@ -116,7 +119,11 @@ data_raw <- data_raw %>%
     studies = DE16,
     subject1 = DE24,
     subject2 = DE25,
-    gender = DE10,
+    gender = factor(
+      DE10,
+      levels = c("Weiblich", "Männlich", "Divers"),
+      labels = c("Female", "Male", "Divers")
+    ),
     location = DE11,
     semestercount = DE15_01,
     isp = DE09,
@@ -327,6 +334,7 @@ for (cc in codes_gender) {
   data$gender[data$code == cc & data$time == "post"] <- pre_val
 }
 
+
 # look at data entries for codes kesü16, leel08, mail19, obpe30, osel08, rosa20, röma24, scna18, stfr08
 # codes_of_interest <- c(
 #   "rosa20"
@@ -378,17 +386,38 @@ for (cc in adjust_semester_to_post) {
   data$semester[data$code == cc & data$time == "pre"] <- pre_val
 }
 
-data_all <- data
+## --- anonymize code -> anon_code using a random mapping ---
+set.seed(20260302) # choose & record a seed to reproduce the same mapping later (optional)
+
+codes <- unique(data$code)
+
+# random but stable (given seed) permutation of sequential IDs
+anon_ids <- sprintf("P1%04d", sample.int(length(codes)))
+
+key <- data.frame(
+  code = codes,
+  anon_code = anon_ids,
+  stringsAsFactors = FALSE
+)
+
+data_all <- merge(data, key, by = "code", all.x = TRUE, sort = FALSE)
+
+# remove the original identifier column
+data_all$code <- NULL
+# rename anon_code to code
+names(data_all)[names(data_all) == "anon_code"] <- "code"
+data_all_25 <- data_all[, c("code", setdiff(names(data_all), "code"))] #set code as first column
+
 # save data for demographics (no pre-post filtering)
-save(data_all, file = "data/data_all.Rdata")
+save(data_all_25, file = "data/25-data_all.Rdata")
 
 # only keep subjects with both data in pre and post test for analysis
-data <- data %>%
+data_25 <- data_all_25 %>%
   group_by(code) %>%
   filter(all(c("pre", "post") %in% time)) %>%
   ungroup()
 
-save(data, file = "data/data.Rdata")
+save(data_25, file = "data/25-data.Rdata")
 
 ```
 
@@ -760,8 +789,8 @@ summary(tpack_efa, nd = 3L, cutoff = 0.3, dot.cutoff = 0.05)
 ```	
 
 items that could be removed: 
-for scale 1: 02/09-11 have only weak or unclean loads; 16 is low loaded
-for scale 3: 08 too weak and 15 too weak and cross-loading
+02/09-11 have only weak or unclean loads; 16 is low loaded; 12 is sign., but since we need to remove more, it's also too low
+08 too weak; 15 too weak and cross-loading; 14 is sign. but also can be kicked
 
 ```	{r ref-cronbach}
 ## Alphas
@@ -844,5 +873,5 @@ p_pu <- plot_outcome(
 
 ```{r save-env }
 # save environment
-save.image("data/env-analysis.Rdata")
+save.image("data/25-env-analysis.Rdata")
 ```
