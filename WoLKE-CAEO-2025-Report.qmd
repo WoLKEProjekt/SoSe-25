@@ -348,25 +348,26 @@ For this, we applied the *Modified Direct Translation* that includes translators
 
 The translation and validation of the Intelligent-TPACK is reported in detail in @authorsinprep.
 
-## Analysis
-We analyzed the interventions' efficacy in a multiple linear regression analysis approach. For this, we implemented a one-way ANCOVA for each outcome measure, considering our $3$ factorial design. To account for the panel structure, that is, two test sessions, in the data, we used the random effects (RE) estimation method to estimate treatment effects, following CITATION.
+## Analysis 
+[We analyzed the interventions' efficacy in a multiple linear regression analysis approach. For this, we implemented a one-way ANCOVA for each outcome measure, considering our $3$ factorial design.
 
-The raw data and *R* scripts detailing the analyses can be accessed in the online supplement at <OSF>.
-
-We implemented the two-level models with the students at level 1 (individual level) and the University at level 2 (class level). We addressed the clustering of time points within students by including random intercepts for students. The clustering of students within universities was addressed by including a dummy variable for the University. 
-
-To contrast the differences in change over time between the treatment groups (i.e., estimated treatment effect), we included the time-by-treatment interaction in the models. For this, we used a dummy-coded *treatment* variable using reversed Helmert contrasts to contrast the differences between (i) the *control* group and the *intervention* groups and (ii) between the two intervention groups. We set the control group as the reference group.
-
+Additionally, we included the respective pretest score of the outcome measures as a covariate in the analyses.
 Finally, we included variables as a covariate if they met the criteria for baseline equivalence in randomized controlled trials by the What Works Clearinghouse [@WWC2022]. That is, we included the variables as covariates if the difference between the groups was statistically significant, or if it exceeded $d>.05$.
 We tested for group differences concerning the following variables at baseline (pretest): age, gender, semester, and study level (Bachelor vs. Master). We found for gender and semesters  statistically significant differences between the treamtment groups, see [@tbl-participants]. We thus included the following covariates in the models: gender and semester.
 
-That is, the final model for each outcome measure contained time, treatment, gender, semester, University and the interaction of time and treatment as fixed effects and a random intercept for students, and was specified as follows:
-`lmer(outcome ~ time * treatment + gender + semester + university + (1|student))`.
+That is, the final model for each outcome measure contained treatment, pretest score, gender, semester, and University as fixed effects, and was specified as follows:
+`lm_robust(outcome_post ~ treatment + outcome_pre + gender + semester )`.
+
+Posttest scores were standardized before running the analyses, so that the regression coefficients of the dummy variable indicating the respective treatment groups can directly be interpreted as Cohen’s d [@marsh2009].
+
+To compute heteroscedasticity-consistent (HC) standard errors, we used the *lm_robust* function from the *estimatr* package [@blair2025], specifying the HC3 estimator, as recommended for small samples [@long2000].
 
 The criterion of statistical significance was set at α=.05.
 
-### Data Preparation and Cleaning
+The raw data and *R* scripts detailing the analyses can be accessed in the online supplement at <OSF>.] {.mark}
 
+
+### Data Preparation and Cleaning
 
 ```{r}
 # get participants who only participated in pre or post test
@@ -392,337 +393,18 @@ As for some self-constructed items students could choose "I don't understand the
   select(all_of(c(list_items_i_tpack, list_items_pu)%>%unlist)) %>%
   summarise(across(everything(), ~ sum(is.na(.x)))) %>% sum`$ responses to individual items).
 
-For the Intelligent TPACK, AI ethics and perceived usefulness (sub)scales, we calculated the mean score across all items of the respective (sub)scale per student. For AI literacy, we calculated the sum score across all items. We additionally calculated the sum score for the subset of items of the AI literacy   that that directly reflect the topics addressed in the course, see SECTION MATERIALS.
+For the Intelligent TPACK, AI ethics and perceived usefulness (sub)scales, we calculated the mean score across all items of the respective (sub)scale per student. For AI literacy, we calculated the sum score across all items. We additionally calculated the sum score for the subset of items of the AI literacy that directly reflect the topics addressed in the course, see SECTION MATERIALS.
 
-### Statistical Software
-We performed the statistical analyses in *R* [@R2024] using the following packages:
-*dplyr* [wickham2023:dplyr], *tidyr* [@wickham2024], and *gtools* [@warnes2023] for data wrangling;
-*arsenal* [@heinzen2021], *vtable* [@huntington2023], *modelsummary* [@arel-bundock2022] and *kableExtra* [@zhu2024] for creating tables; 
-*ggplot2* [@wickham2016], *ggsci* [@xiao2024] and *jtools* [@long2022] for plotting; 
-and the ANCOVA models were estimated using *lm_robust* from the *estimatr* package [@blair2025].
+### Statistical Software {.mark}
+All analyses were conducted in *R* [@R2024]. Data were prepared using *dplyr* [wickham2023:dplyr], *tidyr* [@wickham2024], and *gtools* [@warnes2023]. Tables were created with *arsenal* [@heinzen2021], *vtable* [@huntington2023], *modelsummary* [@arel-bundock2022], and *kableExtra* [@zhu2024]. Figures were produced using *ggplot2* [@wickham2016], *ggsci* [@xiao2024], and *jtools* [@long2022]. The ANCOVA models were estimated using *lm_robust* from the *estimatr* package [@blair2025]. To compute heteroscedasticity-consistent (HC) standard errors, we specified the HC3 estimator, as recommended for small samples [@long2000]. Where applicable, pairwise comparisons were obtained with *emmeans* [@lenth2025].
 
-To compute heteroscedasticity-consistent (HC) standard errors, we specified the HC3 estimator, as recommended for small samples [@long2000]. Where applicable, pairwise comparisons were obtained with *emmeans* [@lenth2025].
-::: {.callout-note}
-^ stimmt das? ^
-folgendes ist veraltet: 
-
-We used the *lme4* package [@bates2015] to fit linear mixed-effects models and the *broom.mixed* package [@bolker2024] to extract the results. Degrees of freedom and *p*-values were calculated using the *lmerTest* package [@kuznetsova2017] using Kenward-Roger's approximation for the denominator degrees of freedom. Pairwise comparisons between the treatment groups were computed using the *emmeans* package [@lenth2025].
-:::
-
-
-# Results
-
+# Results {.mark}
 Descriptive statistics of students' pretest scores are presented in [@tbl-participants].
 As expected, students attending the STEM course and students from the control group, which was recruited from pre-service STEM teachers, reported significantly higher ratings in all Intelligent TPACK subscales compared to students attending language course, which predominantly consisted of students not studying a STEM subject as their second subject. We didn't find significant differences between the intervention groups for AI literacy, AI ethics, and perceived usefulness at the pretest.
 
 The descriptive statistics of students' change in the outcome measures over time per treatment group are listed in  [@fig-ai-lit], [@fig-tpack], and [@fig-pu].
 
 For all outcome measure, we will first report the *main* treatment effect, i.e., the interaction between time and treatment group. Then, we will report the differences between treatment groups, i.e., control vs. intervention groups (STEM and language course), and then contrast the intervention groups, i.e., STEM vs. language course.
-
-::: {.callout-note}
-folgendes ist veraltet: 
-:::
-The results of the linear mixed-effects models for each outcome measure are presented in [@tbl-lmer-ailit-summary], [@tbl-lmer-tpack-summary], and [@tbl-lmer-pu-summary].
-
-## Effect Sizes
-
-```{r effect-sizes}
-dhat <- function(model, idx = 3, type = 2) {
-  f <- abs(tail(summary(model)$coefficients, idx))[1]
-  v <- sqrt(tail(anova(model, type = type)[["Mean Sq"]], 1))
-  return(f / v)
-}
-#' Compute standardized effect size d for one fixed effect in an lmer model, based on https://pmc.ncbi.nlm.nih.gov/articles/PMC6646942/
-#'
-#' d = estimate / sqrt(sum of variances of random effects [+ residual if chosen])
-#'
-#' @param model lmer model
-#' @param effect character, name of the fixed effect in fixef(model)
-#' @param include_residual logical, include residual variance (default TRUE)
-#' @return numeric, effect size d
-lmer_d <- function(model, effect, include_residual = TRUE) {
-  stopifnot(effect %in% names(lme4::fixef(model)))
-
-  # numerator
-  est <- unname(lme4::fixef(model)[effect])
-
-  # variance components
-  vc <- as.data.frame(lme4::VarCorr(model)) # grp, var1, var2, vcov, sdcor
-  var_random <- sum(vc$vcov, na.rm = TRUE)
-
-  # residual
-  if (!include_residual) {
-    var_random <- var_random - sigma(model)^2
-  }
-
-  d <- est / sqrt(var_random)
-  return(d)
-}
-
-effect_sizes_dhat_old <- sapply(lmers_prepost_all, dhat, idx = 2) %>% round(2)
-
-effect_sizes <- sapply(
-  lmers_prepost_all,
-  lmer_d,
-  "intervention-c+STEM_language:time-pre+post"
-) %>%
-  round(2)
-effect_sizes
-```
-
-## AI Literacy
-Descriptive results of students' AI literacy scores are shown in [@fig-ai-lit], and the results of the linear mixed-effects models are listed in [@tbl-lmer-ailit-summary].
-
-```{r fig-ai-lit, echo=FALSE, fig.cap="Descriptive Statistics of Students' AI Literacy Scores Over Time by Treatment Group.", out.width="80%",fig.width=6, fig.height=4.5}
-plot_outcome(
-  data_long %>%
-    filter(outcome %in% c("AILIT", "AILITWolke")) %>%
-    mutate(
-      outcome = factor(
-        outcome,
-        levels = c("AILIT", "AILITWolke"),
-        labels = c("AI Literacy - Full Scale", "AI Literacy - Study-Specific")
-      )
-    ),
-  ylab = "Score"
-) +
-  ggtitle("AI Literacy") +
-  theme(legend.position = "bottom")
-
-#p_ailit %+% + facet_wrap(~outcome, ncol =2, scales="free")  + labs(y = "Score")  + theme(legend.position = "bottom")
-
-# TODO: auch AI Lit Short für Online Supplement
-```
-
-```{r tab.layout="autofit"}
-#| label: tbl-lmer-ailit-summary
-#| tbl-cap: "Summary of Linear Mixed-Effects Models for AI Literacy."
-
-ft_ailit <- modelsummary_models(
-  lmers_prepost_all[names(lmers_prepost_all) %in% c("AILIT", "AILITWolke")],
-  ddf = "kr",
-  output = modelsummary_output,
-  # coef_rename = c("genderMännlich" = "Geschlecht")
-) # %>%   kableExtra::scroll_box(width = "100%")
-
-if (is_word) {
-  ft_ailit <- adjust_table_for_word(ft_ailit, width = .75)
-}
-ft_ailit
-```
-
-### AI Literacy -- Full Scale
-We did not find a significant main effect of treatment on students' change in AI literacy, `r report_lmer_anova(lmers_prepost_all[["AILIT"]])`. Neither did the control group's change differ significantly from both intervention groups, 
-`r report_lmer(lmers_prepost_all[["AILIT"]], term = tc1)`, nor did the change differ significantly between the two intervention groups, `r report_lmer(lmers_prepost_all[["AILIT"]], term = tc2)`.
-
-However, as [@fig-ai-lit] shows, backened by within-group contrast analyses contrasting the AI literacy score between pre- and posttest (see Online Supplement), students in all treatment conditions improved their AI literacy, while the change in pre-service STEM teachers was significant, `r report_contrast(ailit_within_contrasts[[1]], 2)`.
-
-### AI Literacy -- Study-Specific Subset
-For the study-specific subset of the AI literacy items, we also did not find a significant main effect of treatment on students' change in AI literacy, `r report_lmer_anova(lmers_prepost_all[["AILITWolke"]])`. The control group's change did not differ significantly from both intervention groups, 
-`r report_lmer(lmers_prepost_all[["AILITWolke"]], term = tc1)`, nor did the change between the two intervention groups, `r report_lmer(lmers_prepost_all[["AILITWolke"]], term = tc2)`.
-
-```{r, results="asis"}
-if (!is_word) {
-  cat("#### Pairwise Contrasts Within Groups")
-}
-```
-
-```{r ailit-within-contrasts}
-
-# pairwise within contrasts (no multiplicity adjustment)
-ailit_within_contrasts <- lapply(lmers_prepost_all[1:3], function(m) {
-  emmeans(m, ~ time | intervention) %>%
-    contrast(method = "revpairwise", adjust = "none")
-})
-if (!is_word) {
-  print(ailit_within_contrasts)
-}
-```
-
-```{r, results="asis"}
-if (!is_word) {
-  cat("#### Pairwise Contrasts Between Groups")
-}
-```
-
-```{r ailit-between-contrasts}
-# pairwise between contrasts (no multiplicity adjustment)
-ailit_between_contrasts <- lapply(lmers_prepost_all[1:3], function(m) {
-  emmeans(m, ~ intervention * time) %>%
-    contrast(interaction = "revpairwise", adjust = "none")
-})
-if (!is_word) {
-  print(ailit_between_contrasts)
-}
-```
-
-However, as can be seen in [@fig-ai-lit], students in both intervention groups showed descriptively higher increases in AI literacy compared to the control group. When performing post-hoc contrasts, we found that students in the STEM course had a marginally significantly higher increase in the study-specific AI literacy compared to the control group, `r report_contrast(ailit_between_contrasts[[2]], 1)`, while the difference between students in the language course and the control group was insignificant, `r report_contrast(ailit_between_contrasts[[2]],2)`. All contrast analyses can be accessed in the online supplement at <OSF>.
-
-
-## Intelligent TPACK and AI Ethics
-The descriptive results of students' ratings of perceived knowledge in Intelligent TPACK and AI ethics are shown in [@fig-tpack], and [@tbl-lmer-tpack-summary] lists the results of the linear mixed-effects models. As can be seen in [@fig-tpack], all pre-service teachers reported their intelligent TPACK knowledge to be around or below the middle of the scale at the pretest, while the intervention groups reported, on average, values significantly higher than the middle value of the scale at the posttest.
-
-For all subscales related to Intelligent TPACK and AI ethics, that is, Intelligent TK, Intelligent TPK, Intelligent TCK, Intelligent TPACK, and AI ethics, we found a significant main effect of treatment on student' change on the respective subscales. We found significantly higher increases in students' Intelligent TPACK subscales in both intervention groups compared to the control group, whereas the intervention groups did not differ significantly from each other, see [@tbl-lmer-tpack-summary] for an overview.
-
-```{r fig-tpack, echo=FALSE, fig.cap="Descriptive Statistics of Students' Intelligent TPACK and AI Ethics Ratings Over Time by Treatment Group.", out.width="100%",fig.width=7, fig.height=6.5}
-p_tpack +
-  facet_wrap(
-    ~outcome,
-    scales = "fixed",
-    ncol = 3,
-    labeller = labeller(
-      outcome = c(
-        TK = "Intelligent TK",
-        TCK = "Intelligent TCK",
-        TPK = "Intelligent TPK",
-        TPACKce = "Intelligent TPACK - Core",
-        TPACKgenai = "iTPACK - Generative AI",
-        Ethics = "AI Ethics"
-      )
-    )
-  ) +
-  ggtitle("Intelligent TPACK and AI Ethics") +
-  theme(legend.position = "bottom")
-```
-
-::: {.landscape}
-```{r tab.layout="autofit"}
-#| label: tbl-lmer-tpack-summary
-#| tbl-cap: "Summary of Linear Mixed-Effects Models for Intelligent TPACK Subscales and AI Ethics"
-
-ft <- modelsummary_models(
-  lmers_prepost_all[grepl("^(T|Ethics)", names(lmers_prepost_all))],
-  ddf = "kr",
-  output = modelsummary_output,
-  # coef_rename = c("genderMännlich" = "Geschlecht")
-) # %>%   kableExtra::scroll_box(width = "100%")
-
-if (is_word) {
-  ft <- adjust_table_for_word(ft, width = 1)
-}
-ft
-```
-
-:::
-
-### Intelligent TK
-We found a significant main effect of treatment on students' change in intelligent TK, `r report_lmer_anova(lmers_prepost_all[["TK"]])`. 
-We found a significant higher increase in students' intelligent TK in both intervention groups compared to the control group, `r report_lmer(lmers_prepost_all[["TK"]], term = tc1)`, while the change did not differ significantly between the two intervention groups, `r report_lmer(lmers_prepost_all[["TK"]], term = tc2)`.
-
-### Intelligent TPK
-We found a significant main effect of treatment on students' change in intelligent TCK, `r report_lmer_anova(lmers_prepost_all[["TPK"]])`.
-We found a significant higher increase in students' intelligent TCK in both intervention groups compared to the control group, `r report_lmer(lmers_prepost_all[["TPK"]], term = tc1)`, whereas the two intervention groups did not differ significantly in their change, `r report_lmer(lmers_prepost_all[["TPK"]], term = tc2)`.
-
-### Intelligent TCK
-We found a significant main effect of treatment on students' change in intelligent TPK, `r report_lmer_anova(lmers_prepost_all[["TCK"]])`.
-We found a significant higher increase in students' intelligent TPK in both intervention groups compared to the control group, `r report_lmer(lmers_prepost_all[["TCK"]], term = tc1)`, but the change did not differ significantly between the two intervention groups, `r report_lmer(lmers_prepost_all[["TCK"]], term = tc2)`.
-
-### Intelligent TPACK
-For both subscales of the Intelligent TPACK, that is, students' general TPACK and their perceived competence of applying *generative AI* in teaching their subject, we found a significant main effect of treatment on students' change on the respective subscales, *TPACK*: `r report_lmer_anova(lmers_prepost_all[["TPACKce"]])`, and *TPACK related to generative AI*: `r report_lmer_anova(lmers_prepost_all[["TPACKgenai"]])`.
-
-For both subscales, we found the same pattern that students' change in Intelligent TPACK differed significantly between the control group and the two intervention groups, with students in the intervention groups having a significantly higher increase than the control group, whereas the intervention groups did not differ significantly from each other. That is, for *TPACK*:  `r report_lmer(lmers_prepost_all[["TPACKce"]], term = tc1)` and `r report_lmer(lmers_prepost_all[["TPACKce"]], term = tc2)`; and *TPACK related to generative AI*, `r report_lmer(lmers_prepost_all[["TPACKgenai"]], term = tc1)` and `r report_lmer(lmers_prepost_all[[7]], term = tc2)`.
-
-### AI Ethics
-For ethics related to the use of AI in education, we found a significant main effect of treatment on students' change in **XYZ**, `r report_lmer_anova(lmers_prepost_all[["Ethics"]])`. We found a significant higher increase in students' **XYZ** in the intervention groups compared to the control group, `r report_lmer(lmers_prepost_all[["Ethics"]], term = tc1)`, whereas the change did not differ significantly between the two intervention groups, `r report_lmer(lmers_prepost_all[["Ethics"]], term = tc2)`.
-
-## Perceived Usefulness
-Descriptive results of students' perceived usefulness of XYZ are listed in [@fig-pu], while the results of the linear mixed-effects models for perceived usefulness are presented in [@tbl-lmer-pu-summary].
-
-```{r fig-pu, echo=FALSE, fig.cap="Descriptive Statistics of Students' Perceived Usefulness Ratings Over Time by Treatment Group.", out.width="100%",fig.width=7, fig.height=6}
-p_pu +
-  facet_wrap(
-    ~outcome,
-    ncol = 3,
-    scales = "fixed",
-    labeller = as_labeller(c(
-      "PU" = "PU: Perceived Usefulness",
-      "PU1" = "PU1: Increases Teaching Quality",
-      "PU2" = "PU2: Reduces Workload",
-      "PU3" = "PU3: Increases Effectiveness",
-      "PU4" = "PU4: Usefulness for Work"
-    ))
-  ) +
-  labs(y = "Rating") # + theme(legend.position = "bottom")
-```
-
-```{r  pu - contrasts}
-pu_between_contrasts <- lapply(
-  lmers_prepost_all[grepl("^(PU)", names(lmers_prepost_all))],
-  function(m) {
-    emmeans(m, ~ intervention * time) %>%
-      contrast(interaction = "revpairwise", adjust = "none")
-  }
-)
-if (!is_word) {
-  print(pu_between_contrasts)
-}
-```
-
-::: {.landscape}
-```{r tab.layout="autofit"}
-#| label: tbl-lmer-pu-summary
-#| tbl-cap: "Summary of Linear Mixed-Effects Models for Perceived Usefulness."
-
-ft_pu <- modelsummary_models(
-  lmers_prepost_all[grepl("^(PU)", names(lmers_prepost_all))],
-  ddf = "kr",
-  output = modelsummary_output,
-  # coef_rename = c("genderMännlich" = "Geschlecht")
-) # %>%   kableExtra::scroll_box(width = "100%")
-
-if (is_word) {
-  ft_pu <- ft_pu %>% adjust_table_for_word()
-}
-ft_pu
-```
-
-```{r pu-tab-models}
-#| tbl-cap: "Summary of Linear Mixed-Effects Models for Perceived Usefulness."
-
-lmers_pu <- lmers_prepost_all[grepl("^(PU)", names(lmers_prepost_all))]
-tab_models(lmers_pu)
-```
-
-:::
-
-For the overall perceived usefulness, we did not find a significant main effect of treatment on students' change in perceived usefulness, `r report_lmer_anova(lmers_prepost_all[["PU"]])`. Neither did the control group's change differ significantly from both intervention groups, `r report_lmer(lmers_prepost_all[["PU"]], term = tc1)`, nor did the change differ significantly between the two intervention groups, `r report_lmer(lmers_prepost_all[["PU"]], term = tc2)`.
-
-However, when investigating the individual items of perceived usefulness, we found that students in the intervention groups showed marginally significant higher increases compared to the control group, `r report_lmer(lmers_prepost_all[["PU1"]], term = tc1)` and `r report_lmer(lmers_prepost_all[["PU2"]], term = tc1)`, whereas the change did not differ significantly between the two intervention groups, `r report_lmer(lmers_prepost_all[["PU1"]], term = tc2)` and `r report_lmer(lmers_prepost_all[["PU2"]], term = tc2)`, respectively, whereas we found no treatment effect for *PU3*  and *PU4*, see [@tbl-lmer-pu-summary].
-
-::: {.callout-note}
-wir können für uns noch die Kontraste für PU anschauen. Hier ist interessant, dass für PU1 stem > control und PU2 language > control
-:::
-
-```{r results="asis", include=F}
-stargazer_models(lmers_pu)
-```
-
-# Results of ANCOVAs
-
-
-We analyzed the interventions' efficacy in a multiple linear regression analysis approach. For this, we implemented a one-way ANCOVA for each outcome measure, considering our $3$ factorial design.
-
-::: {.callout-note}
-We did not include the university dummy variable for the clustering of students within universities, as we only have control students at University 2 (and thus yields a high correlation with treatment as well).
-:::
-
-Additionally, we included the respective pretest score of the outcome measures as a covariate in the analyses.
-Finally, we included variables as a covariate if they met the criteria for baseline equivalence in randomized controlled trials by the What Works Clearinghouse [@WWC2022]. That is, we included the variables as covariates if the difference between the groups was statistically significant, or if it exceeded $d>.05$.
-We tested for group differences concerning the following variables at baseline (pretest): age, gender, semester, and study level (Bachelor vs. Master). We found for gender and semesters  statistically significant differences between the treamtment groups, see [@tbl-participants]. We thus included the following covariates in the models: gender and semester.
-
-That is, the final model for each outcome measure contained treatment, pretest score, gender, semester, and University as fixed effects, and was specified as follows:
-`lm_robust(outcome_post ~ treatment + outcome_pre + gender + semester )`.
-
-Posttest scores were standardized before running the analyses, so that the regression coefficients of the dummy variable indicating the respective treatment groups can directly be interpreted as Cohen’s d [@marsh2009].
-
-The criterion of statistical significance was set at α=.05.
-
-## Statistical Analysis
-::: {.callout-note}
-Die gleiche Statistik wie oben, aber statt lmer etc.:
-:::
-
-To compute heteroscedasticity-consistent (HC) standard errors, we used the *lm_robust* function from the *estimatr* package [@blair2025], specifying the HC3 estimator, as recommended for small samples [@long2000].
 
 ```{r compute-ancovas}
 # reshape data to wide format for ancova
@@ -765,6 +447,8 @@ ancovas <- lapply(
   data_wide
 )
 names(ancovas) <- outcomes
+tc2 <- nrow(summary(ancovas[[1]])$coefficients)
+tc1 <- tc2 - 1
 
 ancovas_two_groups <- lapply(
   outcomes,
@@ -778,12 +462,105 @@ names(ancovas_two_groups) <- outcomes
 
 ```
 
+## AI Literacy
+Descriptive results of students' AI literacy scores are shown in [@fig-ai-lit], and the results of the ANCOVA models are listed in [@tbl-ancova-ailit-summary].
+
+```{r fig-ai-lit, echo=FALSE, fig.cap="Descriptive Statistics of Students' AI Literacy Scores Over Time by Treatment Group.", out.width="80%",fig.width=6, fig.height=4.5}
+plot_outcome(
+  data_long %>%
+    filter(outcome %in% c("AILIT", "AILITWolke")) %>%
+    mutate(
+      outcome = factor(
+        outcome,
+        levels = c("AILIT", "AILITWolke"),
+        labels = c("AI Literacy - Full Scale", "AI Literacy - Study-Specific")
+      )
+    ),
+  ylab = "Score"
+) +
+  ggtitle("AI Literacy") +
+  theme(legend.position = "bottom")
+
+#p_ailit %+% + facet_wrap(~outcome, ncol =2, scales="free")  + labs(y = "Score")  + theme(legend.position = "bottom")
+
+# TODO: auch AI Lit Short für Online Supplement
+```
+
+```{r tab.layout="autofit"}
+#| label: tbl-ancova-ailit-summary
+#| tbl-cap: "ANCOVA results for scaled posttest AI Literacy (full scale and WOLKE study-specific subset), adjusted for pretest, gender, and semester count."
+
+ft_ailit_ancova <- modelsummary_models(
+  ancovas[names(ancovas) %in% c("AILIT", "AILITWolke")],
+  outcomes = c("AILIT", "AILITWolke"),
+  output = modelsummary_output,
+  # coef_rename = c("genderMännlich" = "Geschlecht")
+) # %>%   kableExtra::scroll_box(width = "100%")
+
+if (is_word) {
+  ft_ailit_ancova <- adjust_table_for_word(ft_ailit_ancova, width = .75)
+}
+ft_ailit_ancova
+
+```
+
+### AI Literacy -- Full Scale
+We did not find a significant effect of treatment condition on students’ AI literacy at posttest after adjusting for pretest scores, gender, and semester count, `r report_beta(ancovas[[1]], "intervention-c+STEM_language")`, suggesting a small positive effect in favor of the intervention groups. Likewise, the difference between the two intervention groups was not statistically significant, `r report_beta(ancovas[[1]], "intervention-STEM+language")`, suggesting a small-to-moderate difference between the groups.
+
+However, as can be seen in [@fig-ai-lit], students in all conditions showed descriptively higher AI literacy at posttest, with the strongest increase observed among pre-service STEM teachers.
+
+### AI Literacy -- Study-Specific Subset
+For the study-specific subset of the AI literacy items, we found a significant effect of treatment condition on students’ AI literacy at posttest after adjusting for pretest scores, gender, and semester count, `r report_beta(ancovas[[2]], "intervention-c+STEM_language")`, indicating a medium positive effect in favor of the intervention groups. The two intervention groups also differed significantly, `r report_beta(ancovas[[2]], "intervention-STEM+language")`, suggesting a medium-sized difference between them.
+
+```{r, results="asis"}
+if (!is_word) {
+  cat("#### Pairwise Contrasts Between Groups")
+}
+```
+
+```{r ailit-ancova-between-contrasts}
+# pairwise between contrasts (no multiplicity adjustment)
+ailit_ancova_between_contrasts <- lapply(ancovas[1:3], function(m) {
+  emmeans(m, ~intervention) %>%
+    contrast(interaction = "pairwise", adjust = "none")
+})
+if (!is_word) {
+  print(ailit_ancova_between_contrasts)
+}
+```
+
+As can be seen in [@fig-ai-lit], students in both intervention groups showed descriptively higher AI literacy scores than students in the control group. Post-hoc contrasts showed that students in the STEM course scored significantly higher on the study-specific AI literacy subset than students in the control group, `r report_contrast_beta(ailit_ancova_between_contrasts[[2]], 1)`, whereas the difference between students in the language course and the control group was not statistically significant, `r report_contrast_beta(ailit_ancova_between_contrasts[[2]], 2)`.
+
 ## Intelligent TPACK and AI Ethics
+The descriptive results of students' ratings of perceived knowledge in Intelligent TPACK and AI ethics are shown in [@fig-tpack], and [@tbl-ancova-tpack-summary] lists the results of the ANCOVA. As can be seen in [@fig-tpack], all pre-service teachers reported their intelligent TPACK knowledge to be around or below the middle of the scale at the pretest, while the intervention groups reported, on average, values significantly higher than the middle value of the scale at the posttest.
+
+For all subscales related to Intelligent TPACK, namely Intelligent TK, Intelligent TPK, Intelligent TCK, Intelligent TPACK, and AI ethics, we found a significant effect of treatment condition on students’ posttest scores after adjusting for pretest scores, gender, and semester count. Students in both intervention groups scored significantly higher than students in the control group on the Intelligent TPACK-related subscales, whereas the two intervention groups did not differ significantly from each other, see [@tbl-ancova-tpack-summary] for an overview, with the exception of the Intelligent TCK subscale.
+
+```{r fig-tpack, echo=FALSE, fig.cap="Descriptive Statistics of Students' Intelligent TPACK and AI Ethics Ratings Over Time by Treatment Group.", out.width="100%",fig.width=7, fig.height=6.5}
+p_tpack +
+  facet_wrap(
+    ~outcome,
+    scales = "fixed",
+    ncol = 3,
+    labeller = labeller(
+      outcome = c(
+        TK = "Intelligent TK",
+        TCK = "Intelligent TCK",
+        TPK = "Intelligent TPK",
+        TPACKce = "Intelligent TPACK - Core",
+        TPACKgenai = "iTPACK - Generative AI",
+        Ethics = "AI Ethics"
+      )
+    )
+  ) +
+  ggtitle("Intelligent TPACK and AI Ethics") +
+  theme(legend.position = "bottom")
+```
 
 ::: {.landscape}
 ```{r tab.layout="autofit"}
 #| label: tbl-ancova-tpack-summary
-#| tbl-cap: "Summary of Multiple Regression Models for Intelligent TPACK Subscales and AI Ethics"
+#| tbl-cap: "ANCOVA results for scaled posttest Intelligent TPACK and AI Ethics, adjusted for pretest, gender, and semester count."
 
 ft_ancova <- modelsummary_models(
   ancovas[grepl("^(T|Ethics)", names(ancovas))],
@@ -800,48 +577,54 @@ ft_ancova
 
 :::
 
-## AI Literacy
+### Intelligent TK
+For Intelligent TK, we found a significant effect of treatment condition on students’ posttest scores after adjusting for pretest scores, gender, and semester count. Students in the intervention groups scored significantly higher than students in the control group, `r report_beta(ancovas[["TK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TK"]], "intervention-STEM+language")`.
 
-```{r tab.layout="autofit"}
-#| label: tbl-ancova-ailit-summary
-#| tbl-cap: "Summary of Multiple Regression Models for AI Literacy."
+### Intelligent TPK
+For Intelligent TPK, we found a significant effect of treatment condition on students’ posttest scores after adjusting for pretest scores, gender, and semester count. Students in the intervention groups scored significantly higher than students in the control group, `r report_beta(ancovas[["TPK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPK"]], "intervention-STEM+language")`.
 
-ft_ailit_ancova <- modelsummary_models(
-  ancovas[names(ancovas) %in% c("AILIT", "AILITWolke")],
-  outcomes = c("AILIT", "AILITWolke"),
-  output = modelsummary_output,
-  # coef_rename = c("genderMännlich" = "Geschlecht")
-) # %>%   kableExtra::scroll_box(width = "100%")
+### Intelligent TCK
+For Intelligent TCK, we found a significant effect of treatment condition on students’ posttest scores after adjusting for pretest scores, gender, and semester count. Students in the intervention groups scored significantly higher than students in the control group, `r report_beta(ancovas[["TCK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. Notably, this was the only subscale for which the two intervention groups also differed significantly, `r report_beta(ancovas[["TCK"]], "intervention-STEM+language")`, with the estimate indicating a medium-sized advantage for the language group.
 
-if (is_word) {
-  ft_ailit_ancova <- adjust_table_for_word(ft_ailit_ancova, width = .75)
-}
-ft_ailit_ancova
-```
+### Intelligent TPACK Core
+For the Intelligent TPACK core subscale, we found a significant effect of treatment condition on students’ posttest scores after adjusting for pretest scores, gender, and semester count. Students in the intervention groups scored significantly higher than students in the control group, `r report_beta(ancovas[["TPACKce"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPACKce"]], "intervention-STEM+language")`.
 
-```{r, results="asis"}
-if (!is_word) {
-  cat("### Pairwise Contrasts Between Groups")
-}
-```
+### Intelligent TPACK (GenAI)
+For Intelligent TPACK related to GenAI, we found a significant effect of treatment condition on students’ posttest scores after adjusting for pretest scores, gender, and semester count. Students in the intervention groups scored significantly higher than students in the control group, `r report_beta(ancovas[["TPACKgenai"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPACKgenai"]], "intervention-STEM+language")`.
 
-```{r ailit-ancova-between-contrasts}
-# pairwise between contrasts (no multiplicity adjustment)
-ailit_ancova_between_contrasts <- lapply(ancovas[1:3], function(m) {
-  emmeans(m, ~intervention) %>%
-    contrast(interaction = "pairwise", adjust = "none")
-})
-if (!is_word) {
-  print(ailit_ancova_between_contrasts)
-}
-```
+### AI Ethics
+For ethics, we found a significant effect of treatment condition on students’ posttest scores after adjusting for pretest scores, gender, and semester count. Students in the intervention groups scored significantly higher than students in the control group, `r report_beta(ancovas[["Ethics"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["Ethics"]], "intervention-STEM+language")`.
+
+::: {.callout-note}
+Soll ich die effect sizes immer anbringen? wirkt repetetiv und kp ob es einen mehrwert gibt, v.a. bei nicht-sign. interventionsgruppen vergleichen.
+:::
+
 
 ## Perceived Usefulness
+Descriptive results of pre-service teacher students' perceived usefulness of AI in their teaching are listed in [@fig-pu], while the results of the ANCOVA analysis for perceived usefulness are presented in [@tbl-ancova-pu-summary].
+
+```{r fig-pu, echo=FALSE, fig.cap="Descriptive Statistics of Students' Perceived Usefulness Ratings Over Time by Treatment Group.", out.width="100%",fig.width=7, fig.height=6}
+p_pu +
+  facet_wrap(
+    ~outcome,
+    ncol = 3,
+    scales = "fixed",
+    labeller = as_labeller(c(
+      "PU" = "PU: Perceived Usefulness",
+      "PU1" = "PU1: Increases Teaching Quality",
+      "PU2" = "PU2: Reduces Workload",
+      "PU3" = "PU3: Increases Effectiveness",
+      "PU4" = "PU4: Usefulness for Work"
+    ))
+  ) +
+  labs(y = "Rating") # + theme(legend.position = "bottom")
+```
+
 
 ::: {.landscape}
 ```{r tab.layout="autofit"}
 #| label: tbl-ancova-pu-summary
-#| tbl-cap: "Summary of Multiple Linear Regression Models for Perceived Usefulness."
+#| tbl-cap: "ANCOVA results for scaled posttest of each Perceived Usefulness item, adjusted for pretest, gender, and semester count."
 
 ft_pu_ancova <- modelsummary_models(
   ancovas[grepl("^(PU)", names(ancovas))],
@@ -858,30 +641,27 @@ ft_pu_ancova
 
 :::
 
+For the overall perceived usefulness, we did not find a significant effect of treatment condition on students’ perceived usefulness at posttest after adjusting for pretest scores, gender, and semester count. Neither did the control group differ significantly from both intervention groups, `r report_beta(ancovas[["PU"]], "intervention-c+STEM_language")`, nor was there a significance difference between the two intervention groups, `r report_beta(ancovas[["PU"]], "intervention-STEM+language")`. For an overview on the ANCOVA results, see [@tbl-ancova-pu-summary].
 
-
-## Two Groups (Control vs. Intervention)
-
-::: {.callout-note}
-Due to the very small (insignificant) difference between the distribution of gender in the treatment groups, we could drop it from the covariates.
-:::
-
-
-```{r effectsizes-covariates-two-groups}
-
-# perform chi square for categorical variables
-chisquare_covariates_two_groups <- vars_cat %>%
-  lapply(function(v) {
-    tab <- table(d[[v]], d$treatment)
-    chisq <- chisq.test(tab)
-  })
-names(chisquare_covariates_two_groups) <- vars_cat
-
-chisquare_covariates_two_groups
-
-effectsizes_covariates__two_groups %>% kable
+```{r  pu - contrasts}
+pu_between_contrasts <- lapply(
+  ancovas[grepl("^(PU)", names(ancovas))],
+  function(m) {
+    emmeans(m, ~intervention) %>%
+      contrast(interaction = "pairwise", adjust = "none")
+  }
+)
+if (!is_word) {
+  print(pu_between_contrasts)
+}
 ```
 
+When investigating the individual items of the perceived usefulness scale, we did not find any significant differences between the control, stem or language groups for items *PU1* and *PU2*. For item *PU3* we see a tendency of a medium effect between the intervention groups `r report_contrast_beta(pu_between_contrasts[[4]], 3)`, and for the same comparison for item *PU4* a significant difference, `r report_contrast_beta(pu_between_contrasts[[5]], 3)`, indicating a medium-sized effect.
+
+## Two-Groups Ancova
+::: {.callout-note}
+Brauchen wir diesen Teil überhaupt, wird der besprochen?
+:::
 ```{r ancova-two-groups}
 #| label: tbl-ancova-two-groups
 #| tbl-cap: "Summary of Multiple Linear Regression Models for Two Treatment Groups."
@@ -893,297 +673,3 @@ modelsummary_models(
 )
 
 ```
-
-# Discussion
-
-# Playground
-
-## Reflection
-```{r reflection}
-refs <- c("Ref", list_items_ref %>% unlist)
-lms_reflection <- lapply(
-  refs, # a character vector of column names
-  function(x) {
-    f <- as.formula(paste(x, "~ intervention + gender + semester"))
-    lm(f, data %>% filter(time == "post"))
-  }
-)
-
-modelsummary_models(lms_reflection)
-
-# pairwise between contrasts (no multiplicity adjustment)
-refl_between_contrasts <- lapply(lms_reflection, function(m) {
-  emmeans(m, ~intervention) %>%
-    contrast(interaction = "pairwise", adjust = "none")
-})
-if (!is_word) {
-  print(refl_between_contrasts)
-}
-```
-
-```{r plot-reflection, fig.height=8}
-# for all of refs, do a boxplot of ref ~ intervention using ggplot2
-data_long_refl <- data %>%
-  filter(time == "post") %>%
-  pivot_longer(
-    cols = all_of(unname(refs)), # <-- strip names!
-    names_to = "outcome",
-    values_to = "score"
-  )
-
-data_long_refl <- data_long_refl %>%
-  mutate(
-    outcome = factor(outcome, levels = refs)
-  )
-
-# set color scale/palette and plot theme
-wolke_color_scale <- scale_colour_manual(values = rev(pal_jco("default")(3)))
-wolke_theme <-
-  jtools::theme_apa(
-    legend.pos = "bottomright",
-    legend.use.title = T,
-    facet.title.size = 12,
-    x.font.size = 18,
-    y.font.size = 18,
-    legend.font.size = 12
-  )
-
-ggplot(data_long_refl, aes(x = intervention, y = score, color = intervention)) +
-  geom_boxplot() +
-  geom_jitter(width = 0.1, alpha = 0.5) +
-  # add mean as diamond shape
-  stat_summary(
-    fun = mean,
-    geom = "point",
-    shape = 18,
-    size = 4,
-    color = "black",
-    fill = "black"
-  ) +
-  facet_wrap(~outcome, scales = "free_y") +
-  labs(x = "Intervention Group", y = "REF") +
-  wolke_color_scale +
-  wolke_theme
-```
-
-## Demographics Check
-```{r test}
-library(dplyr)
-library(tidyr)
-
-check_demo_vars <- function(
-  data,
-  demo_vars = c("age", "semester", "gender", "students"),
-  id = "code",
-  time_col = "time",
-  pre_label = "pre",
-  post_label = "post",
-  show_only_diff = FALSE
-) {
-  out <- data %>%
-    select(all_of(c(id, time_col, demo_vars))) %>%
-    # ensure a common type across demo vars
-    mutate(across(all_of(demo_vars), as.character)) %>%
-    pivot_longer(
-      cols = all_of(demo_vars),
-      names_to = "variable",
-      values_to = "value"
-      # alternatively: values_transform = as.character
-      # or: values_ptypes = list(value = character())
-    ) %>%
-    group_by(.data[[id]], variable, .data[[time_col]]) %>%
-    summarise(
-      value = paste(unique(na.omit(value)), collapse = ", "),
-      .groups = "drop"
-    ) %>%
-    pivot_wider(names_from = all_of(time_col), values_from = value) %>%
-    transmute(
-      !!id := .data[[id]],
-      variable,
-      pre = .data[[pre_label]],
-      post = .data[[post_label]],
-      match = (pre == post) | (is.na(pre) & is.na(post))
-    ) %>%
-    arrange(.data[[id]], variable)
-
-  if (show_only_diff) {
-    out <- filter(out, is.na(match) | !match)
-  }
-  out
-}
-check_demo_vars(
-  data,
-  demo_vars = c(
-    "age",
-    "semester",
-    "gender",
-    "students",
-    "intervention",
-    "location"
-  ),
-  id = "code",
-  show_only_diff = T
-)
-```
-
-### Rerun Models without Semester, but Study Level as Covariate
-
-::: {.landscape}
-```{r rerun-models-with-study-level}
-lmers_prepost_all_study_level <- lapply(lmers_prepost_all, function(m) {
-  update(m, . ~ . - semester + students)
-})
-modelsummary_models(
-  lmers_prepost_all_study_level,
-  ddf = "kr",
-  output = modelsummary_output
-)
-```
-
-::: 
-
-## Comparison of Certain Covariates
-
-### In- and Exclusion of University as Covariate
-```{r}
-
-modelsummary_models(
-  list(
-    ancovas[["AILITWolke"]],
-    lm_robust(
-      AILITWolke_post ~ intervention + pretest + gender + semester + location,
-      data_wide %>% mutate(pretest = AILITWolke_pre),
-      se_type = "HC3"
-    ),
-    lm(
-      AILITWolke_post ~ intervention + pretest + gender + semester,
-      data_wide %>% mutate(pretest = AILITWolke_pre)
-    ),
-    lm_robust(
-      AILITWolke_post ~ treatment + pretest + gender + semester,
-      data_wide %>% mutate(pretest = AILITWolke_pre),
-      se_type = "HC3"
-    )
-  ),
-  output = modelsummary_output
-)
-```
-
-## LMERs with Standardized Outcomes
-```{r lmers-standardized}
-modelsummary_models(
-  list(
-    lmers_prepost_all[["AILITWolke"]],
-    lmer(AILITWolke ~ intervention * time + (1 | code), data),
-    lmer(
-      AILITWolke ~ intervention * time + (1 | code),
-      data %>%
-        group_by(time) %>%
-        mutate(AILITWolke = scale(AILITWolke)) %>%
-        ungroup()
-    )
-  ),
-  output = modelsummary_output
-)
-```
-
-## Cluster-Robust Standard Errors for LMER Models
-
-::: {.callout-tip}
-If we used cluster-robust standard errors in the lmer models, the SEs become a little smaller, resulting in slightly smaller p-values.
-:::
-
-```{r tbl-lmer-robust-se}
-#| tbl-cap: "Summary of Linear Mixed-Effects Models with Cluster-Robust Standard Errors and Satterthwait-Corrected Tests Using clubSandwich::vcovCR with CR2."
-
-# Cluster-robust vcov (CR2 is usually recommended)
-# However, modelsummary itself doesn't directly implement Satterthwaite tests; it relies on the vcov matrix for standard errors and calculates tests using default methods.
-
-modelsummary_models(lmers_prepost_all, vcov = "CR2")
-
-# Alternative, which is not needed if modelsummary correctly derives the cluster variable from the model (which is the case for the random intercept of code)
-vcov_list <- outcomes %>%
-  lapply(function(o) {
-    m <- lmers_prepost_all[[o]]
-    # cluster-robust variance estimator with CR2 small-sample correction
-    clubSandwich::vcovCR(m, cluster = data$code, type = "CR2")
-  })
-# modelsummary_models(lmers_prepost_all, vcov = vcov_list)
-```
-
-
-```{r tbl-lmer-robust-se-satt}
-#| tbl-cap: "Summary of Linear Mixed-Effects Models with Cluster-Robust Standard Errors and Satterthwaite-Corrected Tests Using coef_tests."
-
-# Extract coefficient tests with cluster-robust CR2 SE and Satterthwaite correction
-coef_tests <- lapply(lmers_prepost_all, function(model) {
-  clubSandwich::coef_test(
-    model,
-    vcov = "CR2",
-    cluster = data$code,
-    test = "Satterthwaite"
-  )
-})
-# Simple custom class for robust results
-create_robust_lmer <- function(model, coef_test_result) {
-  robust_obj <- structure(
-    list(
-      model = model,
-      robust_results = coef_test_result
-    ),
-    class = c("robust_lmer", class(model))
-  )
-
-  # Copy important attributes from the original model
-  attr(robust_obj, "formula") <- formula(model)
-
-  return(robust_obj)
-}
-
-# Simple tidy method - just return your robust results
-tidy.robust_lmer <- function(x, ...) {
-  ct <- x$robust_results
-  data.frame(
-    term = rownames(ct),
-    estimate = ct$beta,
-    std.error = ct$SE,
-    statistic = ct$tstat,
-    p.value = ct$p_Satt,
-    stringsAsFactors = FALSE
-  )
-}
-
-# Simple glance method - get basic stats + R²
-glance.robust_lmer <- function(x, ...) {
-  model <- x$model
-
-  # Basic model stats
-  basic_stats <- data.frame(
-    nobs = nobs(model),
-    aic = AIC(model),
-    bic = BIC(model),
-    logLik = as.numeric(logLik(model)),
-    Std.Errors = "CR2"
-  )
-
-  # Add R² marginal and conditional
-  # Add R² using custom names that will display as you want
-  if (requireNamespace("performance", quietly = TRUE)) {
-    r2 <- performance::r2(model)
-    basic_stats$`R2 Marg.` <- r2$R2_marginal %>% round(3)
-    basic_stats$`R2 Cond.` <- r2$R2_conditional %>% round(3)
-  }
-  return(basic_stats)
-}
-
-# Create robust models
-robust_models <- lapply(seq_along(lmers_prepost_all), function(i) {
-  create_robust_lmer(lmers_prepost_all[[i]], coef_tests[[i]])
-})
-
-# Use with modelsummary
-modelsummary_models(
-  robust_models
-)
-```
-

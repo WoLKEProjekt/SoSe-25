@@ -142,6 +142,89 @@ report_lmer_papaja <- function(
   )$full_result[[term]] # get apa_print output
 }
 
+report_beta <- function(model, term, digits = 2, p_digits = 3) {
+  coefs <- summary(model)$coefficients
+
+  if (!term %in% rownames(coefs)) {
+    stop(sprintf("Term '%s' not found in model.", term))
+  }
+
+  b <- coefs[term, "Estimate"]
+  se <- coefs[term, "Std. Error"]
+  t <- coefs[term, "t value"]
+  p <- coefs[term, "Pr(>|t|)"]
+  df <- coefs[term, "DF"]
+
+  fmt_num <- function(x, d = digits) formatC(x, format = "f", digits = d)
+
+  fmt_p <- function(p, digits = p_digits) {
+    if (is.na(p)) {
+      return("= NA")
+    }
+    if (p < .001) {
+      return("< .001")
+    }
+    out <- formatC(p, format = "f", digits = digits)
+    out <- sub("^0", "", out)
+    paste0("= ", out)
+  }
+
+  paste0(
+    "\u03b2 = ",
+    fmt_num(b),
+    ", SE = ",
+    fmt_num(se),
+    ", t(",
+    df,
+    ") = ",
+    fmt_num(t),
+    ", p ",
+    fmt_p(p, p_digits)
+  )
+}
+
+report_contrast_beta <- function(
+  contrast_obj,
+  row = 1,
+  digits = 2,
+  p_digits = 3
+) {
+  tab <- as.data.frame(contrast_obj)
+
+  b <- tab$estimate[row]
+  se <- tab$SE[row]
+  t <- tab$t.ratio[row]
+  p <- tab$p.value[row]
+  df <- tab$df[row]
+
+  fmt_num <- function(x, d = digits) formatC(x, format = "f", digits = d)
+
+  fmt_p <- function(p, digits = p_digits) {
+    if (is.na(p)) {
+      return("= NA")
+    }
+    if (p < .001) {
+      return("< .001")
+    }
+    out <- formatC(p, format = "f", digits = digits)
+    out <- sub("^0", "", out)
+    paste0("= ", out)
+  }
+
+  paste0(
+    "\u03b2 = ",
+    fmt_num(b),
+    ", SE = ",
+    fmt_num(se),
+    ", t(",
+    df,
+    ") = ",
+    fmt_num(t),
+    ", p ",
+    fmt_p(p, p_digits)
+  )
+}
+
 plot_outcome <- function(
   data,
   groups = "intervention",
