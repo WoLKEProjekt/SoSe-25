@@ -134,11 +134,9 @@ lmers_prepost_all <- lapply(
   data = data
 )
 names(lmers_prepost_all) <- outcomes
-
 ```
 
 ```{r prepare-output}
-
 is_word <- !(knitr::is_html_output() | knitr::is_latex_output())
 
 if (is_word) {
@@ -264,7 +262,6 @@ kable(
 
 ### Effect Sizes for Group Differences for Covariates
 ```{r group-differences-effectsizes}
-
 vars_num <- c("age", "semester") # numeric outcomes
 vars_cat <- c("gender", "students") # categorical outcomes
 
@@ -402,9 +399,9 @@ All analyses were conducted in *R* [@R2024]. Data were prepared using *dplyr* [w
 Descriptive statistics of students' pretest scores are presented in [@tbl-participants].
 As expected, students attending the STEM course and students from the control group, which was recruited from pre-service STEM teachers, reported significantly higher ratings in all Intelligent TPACK subscales compared to students attending language course, which predominantly consisted of students not studying a STEM subject as their second subject. We didn't find significant differences between the intervention groups for AI literacy, AI ethics, and perceived usefulness at the pretest.
 
-The descriptive statistics of students' change in the outcome measures over time per treatment group are listed in  [@fig-ai-lit], [@fig-tpack], and [@fig-pu].
+The descriptive statistics for students’ outcome measures at pretest and posttest by treatment group are shown in [@fig-ai-lit], [@fig-tpack], and [@fig-pu].
 
-For all outcome measure, we will first report the *main* treatment effect, i.e., the interaction between time and treatment group. Then, we will report the differences between treatment groups, i.e., control vs. intervention groups (STEM and language course), and then contrast the intervention groups, i.e., STEM vs. language course.
+For all outcome measures, we first report the main effect of treatment condition on posttest scores after adjusting for pretest scores, gender, and semester count. We then report the planned contrasts comparing the control group with the intervention groups and, subsequently, the contrast between the two intervention groups (STEM vs. language course).
 
 ```{r compute-ancovas}
 # reshape data to wide format for ancova
@@ -459,7 +456,6 @@ ancovas_two_groups <- lapply(
   data_wide
 )
 names(ancovas_two_groups) <- outcomes
-
 ```
 
 ## AI Literacy
@@ -489,7 +485,6 @@ plot_outcome(
 ```{r tab.layout="autofit"}
 #| label: tbl-ancova-ailit-summary
 #| tbl-cap: "ANCOVA results for scaled posttest AI Literacy (full scale and WOLKE study-specific subset), adjusted for pretest, gender, and semester count."
-
 ft_ailit_ancova <- modelsummary_models(
   ancovas[names(ancovas) %in% c("AILIT", "AILITWolke")],
   outcomes = c("AILIT", "AILITWolke"),
@@ -501,16 +496,15 @@ if (is_word) {
   ft_ailit_ancova <- adjust_table_for_word(ft_ailit_ancova, width = .75)
 }
 ft_ailit_ancova
-
 ```
 
 ### AI Literacy -- Full Scale
-We did not find a significant effect of treatment condition on students’ AI literacy at posttest, `r report_beta(ancovas[[1]], "intervention-c+STEM_language")`, although the estimate indicated a small positive effect in favor of the intervention groups. Likewise, the difference between the two intervention groups was not statistically significant, `r report_beta(ancovas[[1]], "intervention-STEM+language")`, but the estimate suggested a tendency toward a small-to-moderate effect for the STEM group.
+We did not find a significant effect of treatment condition on students’ knowledge gains in AI literacy, `r report_beta(ancovas[[1]], "intervention-c+STEM_language")`. Likewise, the differencein knowledge gains between the two intervention groups was not statistically significant, `r report_beta(ancovas[[1]], "intervention-STEM+language")`, but the estimate suggested a tendency toward a small-to-moderate effect for the STEM group.
 
 However, as can be seen in [@fig-ai-lit], students in all conditions showed descriptively higher AI literacy at posttest, with the strongest increase observed among pre-service STEM teachers.
 
 ### AI Literacy -- Study-Specific Subset
-For the study-specific subset of the AI literacy items, we found a significant medium-sized effect of treatment condition on students’ AI literacy at posttest in favor of the intervention groups, `r report_beta(ancovas[[2]], "intervention-c+STEM_language")`. In addition, we found a significant medium-sized difference between the two intervention groups in favor of the STEM group, `r report_beta(ancovas[[2]], "intervention-STEM+language")`.
+For the study-specific subset of the AI literacy items, we found a significant medium-sized effect of treatment condition on students’ increased AI literacy score in favor of the intervention groups, `r report_beta(ancovas[[2]], "intervention-c+STEM_language")`. In addition, we found a significant medium-sized difference between the two intervention groups in favor of the STEM group, `r report_beta(ancovas[[2]], "intervention-STEM+language")`.
 
 ```{r, results="asis"}
 if (!is_word) {
@@ -529,12 +523,12 @@ if (!is_word) {
 }
 ```
 
-As can be seen in [@fig-ai-lit], students in both intervention groups showed descriptively higher AI literacy scores than students in the control group. Post-hoc contrasts showed that students in the STEM course scored significantly higher on the study-specific AI literacy subset than students in the control group, `r report_contrast_beta(ailit_ancova_between_contrasts[[2]], 1)`, indicating a large effect in favor of the STEM group, whereas the difference between students in the language course and the control group was not statistically significant, `r report_contrast_beta(ailit_ancova_between_contrasts[[2]], 2)`, although the estimate suggested a small effect in favor of the language group.
+As can be seen in [@fig-ai-lit], students in both intervention groups showed descriptively higher AI literacy scores than students in the control group. Post-hoc contrasts showed that students in the STEM course scored significantly higher on the study-specific AI literacy subset than students in the control group, `r report_contrast_beta(ailit_ancova_between_contrasts[[2]], 1)`, indicating a large effect in favor of the STEM group, whereas the difference between students in the language course and the control group was not statistically significant, `r report_contrast_beta(ailit_ancova_between_contrasts[[2]], 2)`.
 
 ## Intelligent TPACK and AI Ethics
 The descriptive results of students' ratings of perceived knowledge in Intelligent TPACK and AI ethics are shown in [@fig-tpack], and [@tbl-ancova-tpack-summary] lists the results of the ANCOVA. As can be seen in [@fig-tpack], all pre-service teachers reported their intelligent TPACK knowledge to be around or below the middle of the scale at the pretest, while the intervention groups reported, on average, values significantly higher than the middle value of the scale at the posttest.
 
-For all subscales related to Intelligent TPACK, namely Intelligent TK, Intelligent TPK, Intelligent TCK, Intelligent TPACK, and AI ethics, we found a significant effect of treatment condition on students’ posttest scores after adjusting for pretest scores, gender, and semester count. Students in both intervention groups scored significantly higher than students in the control group on the Intelligent TPACK-related subscales, whereas the two intervention groups did not differ significantly from each other, see [@tbl-ancova-tpack-summary] for an overview, with the exception of the Intelligent TCK subscale.
+For all subscales related to Intelligent TPACK, namely Intelligent TK, Intelligent TPK, Intelligent TCK, Intelligent TPACK, and AI ethics, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in both intervention groups reported significantly higher posttest ratings than students in the control group on the Intelligent TPACK-related subscales, whereas the two intervention groups did not differ significantly from each other, see [@tbl-ancova-tpack-summary] for an overview, with the exception of the Intelligent TCK subscale.
 
 ```{r fig-tpack, echo=FALSE, fig.cap="Descriptive Statistics of Students' Intelligent TPACK and AI Ethics Ratings Over Time by Treatment Group.", out.width="100%",fig.width=7, fig.height=6.5}
 p_tpack +
@@ -561,7 +555,6 @@ p_tpack +
 ```{r tab.layout="autofit"}
 #| label: tbl-ancova-tpack-summary
 #| tbl-cap: "ANCOVA results for scaled posttest Intelligent TPACK and AI Ethics, adjusted for pretest, gender, and semester count."
-
 ft_ancova <- modelsummary_models(
   ancovas[grepl("^(T|Ethics)", names(ancovas))],
   outcomes = outcomes %>% grep("^(T|Ethics)", ., value = TRUE),
@@ -578,26 +571,23 @@ ft_ancova
 :::
 
 ### Intelligent TK
-For Intelligent TK, we found a significant effect of treatment condition on students’ posttest scores. Students in the intervention groups scored significantly higher than students in the control group, `r report_beta(ancovas[["TK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TK"]], "intervention-STEM+language")`.
+For Intelligent TK, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in the intervention groups reported significantly higher posttest ratings than students in the control group, `r report_beta(ancovas[["TK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TK"]], "intervention-STEM+language")`.
+
 
 ### Intelligent TPK
-For Intelligent TPK, we found a significant effect of treatment condition on students’ posttest scores. Students in the intervention groups scored significantly higher than students in the control group, `r report_beta(ancovas[["TPK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPK"]], "intervention-STEM+language")`, although the estimate suggested a small-to-moderate advantage for the STEM group.
+For Intelligent TPK, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in the intervention groups reported significantly higher posttest ratings than students in the control group, `r report_beta(ancovas[["TPK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPK"]], "intervention-STEM+language")`, although the estimate suggested a small-to-moderate advantage for the STEM group.
 
 ### Intelligent TCK
-For Intelligent TCK, we found a significant effect of treatment condition on students’ posttest scores. Students in the intervention groups scored significantly higher than students in the control group, `r report_beta(ancovas[["TCK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. Notably, this was the only subscale for which the two intervention groups also differed significantly, `r report_beta(ancovas[["TCK"]], "intervention-STEM+language")`, with the estimate indicating a medium-sized advantage for the STEM group.
+For Intelligent TCK, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in the intervention groups reported significantly higher posttest ratings than students in the control group, `r report_beta(ancovas[["TCK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. Notably, this was the only subscale for which the two intervention groups also differed significantly, `r report_beta(ancovas[["TCK"]], "intervention-STEM+language")`, with the estimate indicating a medium-sized advantage for the STEM group.
 
 ### Intelligent TPACK Core
-For the Intelligent TPACK core subscale, we found a significant effect of treatment condition on students’ posttest scores. Students in the intervention groups scored significantly higher than students in the control group, `r report_beta(ancovas[["TPACKce"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPACKce"]], "intervention-STEM+language")`.
+For the Intelligent TPACK core subscale, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in the intervention groups reported significantly higher posttest ratings than students in the control group, `r report_beta(ancovas[["TPACKce"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPACKce"]], "intervention-STEM+language")`.
 
 ### Intelligent TPACK (GenAI)
-For Intelligent TPACK related to GenAI, we found a significant effect of treatment condition on students’ posttest scores. Students in the intervention groups scored significantly higher than students in the control group, `r report_beta(ancovas[["TPACKgenai"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPACKgenai"]], "intervention-STEM+language")`, although the estimate suggested a small effect in favor of the STEM group.
+For Intelligent TPACK related to GenAI, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in the intervention groups reported significantly higher posttest ratings than students in the control group, `r report_beta(ancovas[["TPACKgenai"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPACKgenai"]], "intervention-STEM+language")`, although the estimate suggested a small effect in favor of the STEM group.
 
 ### AI Ethics
-For ethics, we found a significant effect of treatment condition on students’ posttest scores. Students in the intervention groups scored significantly higher than students in the control group, `r report_beta(ancovas[["Ethics"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["Ethics"]], "intervention-STEM+language")`.
-
-::: {.callout-note}
-Soll ich die effect sizes immer anbringen? wirkt repetetiv und kp ob es einen mehrwert gibt, v.a. bei nicht-sign. interventionsgruppen vergleichen.
-:::
+For ethics, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in the intervention groups reported significantly higher posttest ratings than students in the control group, `r report_beta(ancovas[["Ethics"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["Ethics"]], "intervention-STEM+language")`.
 
 
 ## Perceived Usefulness
@@ -625,7 +615,6 @@ p_pu +
 ```{r tab.layout="autofit"}
 #| label: tbl-ancova-pu-summary
 #| tbl-cap: "ANCOVA results for scaled posttest of each Perceived Usefulness item, adjusted for pretest, gender, and semester count."
-
 ft_pu_ancova <- modelsummary_models(
   ancovas[grepl("^(PU)", names(ancovas))],
   outcomes = outcomes %>% grep("^(PU)", ., value = TRUE),
@@ -641,7 +630,7 @@ ft_pu_ancova
 
 :::
 
-For the overall perceived usefulness, we did not find a significant effect of treatment condition on students’ perceived usefulness at posttest after adjusting for pretest scores, gender, and semester count. Neither did the control group differ significantly from both intervention groups, `r report_beta(ancovas[["PU"]], "intervention-c+STEM_language")`, nor was there a significance difference between the two intervention groups, `r report_beta(ancovas[["PU"]], "intervention-STEM+language")`. For an overview on the ANCOVA results, see [@tbl-ancova-pu-summary].
+For the overall perceived usefulness, we did not find a significant effect of treatment condition on students’ rating of their perceived usefulness at posttest. Neither did the control group differ significantly from both intervention groups, `r report_beta(ancovas[["PU"]], "intervention-c+STEM_language")`, nor was there a significance difference between the two intervention groups, `r report_beta(ancovas[["PU"]], "intervention-STEM+language")`. For an overview on the ANCOVA results, see [@tbl-ancova-pu-summary].
 
 ```{r  pu - contrasts}
 pu_between_contrasts <- lapply(
@@ -665,11 +654,9 @@ Brauchen wir diesen Teil überhaupt, wird der besprochen?
 ```{r ancova-two-groups}
 #| label: tbl-ancova-two-groups
 #| tbl-cap: "Summary of Multiple Linear Regression Models for Two Treatment Groups."
-
 modelsummary_models(
   ancovas_two_groups,
   outcomes = outcomes,
   output = modelsummary_output
 )
-
 ```
