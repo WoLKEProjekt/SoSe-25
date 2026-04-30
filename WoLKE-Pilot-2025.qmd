@@ -418,7 +418,6 @@ data_25 <- data_all_25 %>%
   ungroup()
 
 save(data_25, file = "data/25-data.Rdata")
-
 ```
 
 ```{r Demographics}
@@ -470,11 +469,9 @@ subject_counts <- data_dem_all %>%
 # mutate(p = n / sum(n))
 
 print(n = 100, subject_counts)
-
 ```
 
 ```{r Prepare scales}
-
 ### grouping scales
 ## TPACK
 # all TPACK items used
@@ -527,7 +524,7 @@ list_items_ailit_wolke <- list(
 data <- data %>%
   mutate(
     AILIT = AI35_02, # default sumscore
-    AILITWolke = rowSums(
+    AILITwolke = rowSums(
       select(., all_of(list_items_ailit_wolke$ailit_wolke)),
       na.rm = TRUE
     ),
@@ -567,14 +564,12 @@ data %>%
   select(all_of(c(list_items_i_tpack, list_items_pu) %>% unlist)) %>%
   summarise(across(everything(), ~ sum(is.na(.x)))) %>%
   sum
-
 ```
 
 ## Analysis
 
 Im folgenden verwenden wir drei Kontraste: (0) Intercept = Gesamtdurchschnitt aller Gruppen, (1) Exp-Ø (MINT+Sprache)/2 vs. Control, (2) Sprache vs. MINT. Mit der Zeit-Interaktion testen wir, ob sich diese Unterschiede über die Zeit unterschiedlich entwickeln (Difference-in-Differences: Exp-Ø vs. Control sowie Sprache vs. MINT).
 ``` {r lmer MINT vs Sprache vs Kontrollgruppe}
-
 data <- data %>% droplevels() # drop unused factor levels
 
 ## define contrast Control vs Exp1+Exp2 - vermutlich bessere version, da die Estimates "stimmen"
@@ -597,7 +592,7 @@ random_terms_lmer <- c("(1 | code)")
 groups <- c("intervention")
 outcomes <- c(
   "AILIT",
-  "AILITWolke",
+  "AILITwolke",
   "AILITShort",
   "TK",
   "TPK",
@@ -628,11 +623,9 @@ lmers_prepost_all <-
   )
 
 modelsummary_models(lmers_prepost_all)
-
 ```
 
 ```{r scale reliability with cronbach alpha}	
-
 ## look at MSD and cronbach alphas for outcomes for each intervention group
 # filter out pre data and relevant lists
 data_pre <- data %>% filter(time == "pre")
@@ -673,7 +666,6 @@ result_df <- desc_df %>%
   arrange(scale)
 
 result_df
-
 ```
 
 ### Exploring Ref scale in posttest
@@ -820,8 +812,6 @@ alpha_summary <- imap_dfr(
 )
 
 alpha_summary
-
-
 ```	
 
 

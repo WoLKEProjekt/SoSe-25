@@ -61,18 +61,27 @@ library(papaja) # for apa reporting
 library(sjPlot) # for tab_model
 library(stargazer) # for stargazer tables
 library(estimatr) # for lm_robust
-source(file = "functions.r") # all outsourced funtions
+library(patchwork) # for vertical plots
+library(purrr)
 ```
 
 
 ```{r load-data}
 # load "env-analysis.RData" which contains all data needed for the analysis
 load(file = "data/env-analysis.RData")
+source(file = "functions.r") # all outsourced funtions, needs to be called after loading env
 
+outcomes[outcomes == "AILITWolke"] <- "AILITwolke"
 names(lmers_prepost_all) <- outcomes
 # get the number of the terms in the model for the two treatment contrasts
 tc2 <- nrow(summary(lmers_prepost_all[[1]])$coefficients)
 tc1 <- tc2 - 1
+
+# adjust AILITWolke in data and rename it to AILITwolke
+names(data)[names(data) == "AILITWolke"] <- "AILITwolke"
+levels(data_long$outcome)[
+  levels(data_long$outcome) == "AILITWolke"
+] <- "AILITwolke"
 ```
 
 ```{r rerun-models-with-proper-contrasts}
@@ -162,7 +171,7 @@ adjust_table_for_word <- function(ft, width = 0) {
 
 ## Participants
 
-```{r}
+```{r data_participants}
 data_participants <- data %>%
   filter(time == "pre") %>%
   group_by(intervention, location, gender) %>%
@@ -189,8 +198,7 @@ In total, $N=`r data_all %>% filter(time=="pre") %>% nrow()`$ students originall
 
 Unfortunately, we observed a high drop-out rate between the pre- and posttest. We attribute this to several factors: First, the posttests were conducted in class close  (one to two weeks) to the examination period, resulting in students not attending the in-person posttest sessions. For the control group, some lecturers executed the posttest during their teaching, while others did not. We suspect a high drop-out at the posttest for the control group due to both factors: students not attending the sessions close to the examination week and not conducting the tests at home or in their free study time.
 
-
-Descriptive statistics of students' demographics and pretest scores are presented in [@tbl-participants]. The final sample size included in the analyses was $n=76$, aged between $`r data_pre$age %>% min`$ and $`r data_pre$age %>% max`$ years ($M=`r data_pre$age %>% mean %>% round(2)`$, $SD=`r data_pre$age %>% sd %>% round(2)`$), of which $`r data_pre %>% filter(gender=="Weiblich")%>%nrow`$ identified as female and $`r data_pre%>%filter(gender=="Männlich")%>%nrow`$ as male.
+Descriptive statistics of students' demographics and pretest scores are presented in [@tbl-participants]. The final sample size included in the analyses was $n=`r data_participants$n %>% sum`, aged between $`r data_pre$age %>% min`$ and $`r data_pre$age %>% max`$ years ($M=`r data_pre$age %>% mean %>% round(2)`$, $SD=`r data_pre$age %>% sd %>% round(2)`$), of which $`r data_pre %>% filter(gender=="Weiblich")%>%nrow`$ identified as female and $`r data_pre%>%filter(gender=="Männlich")%>%nrow`$ as male.
 The students were enrolled in semester $`r data_pre$semester %>% min`$ to $`r data_pre$semester %>% max`$ ($M=`r data_pre$semester %>% mean %>% round(2)`$, $SD=`r data_pre$semester%>%sd%>%round(2)`$). Of these, $`r data_pre%>%filter(students=="bachelor") %>% nrow`$ students were at the Bachelor's level and $`r data_pre%>%filter(students=="master")%>%nrow`$ at the Master's level.
 
 
@@ -392,14 +400,14 @@ As for some self-constructed items students could choose "I don't understand the
 
 For the Intelligent TPACK, AI ethics and perceived usefulness (sub)scales, we calculated the mean score across all items of the respective (sub)scale per student. For AI literacy, we calculated the sum score across all items. We additionally calculated the sum score for the subset of items of the AI literacy that directly reflect the topics addressed in the course, see SECTION MATERIALS.
 
-### Statistical Software {.mark}
+### Statistical Software
 All analyses were conducted in *R* [@R2024]. Data were prepared using *dplyr* [wickham2023:dplyr], *tidyr* [@wickham2024], and *gtools* [@warnes2023]. Tables were created with *arsenal* [@heinzen2021], *vtable* [@huntington2023], *modelsummary* [@arel-bundock2022], and *kableExtra* [@zhu2024]. Figures were produced using *ggplot2* [@wickham2016], *ggsci* [@xiao2024], and *jtools* [@long2022]. The ANCOVA models were estimated using *lm_robust* from the *estimatr* package [@blair2025]. To compute heteroscedasticity-consistent (HC) standard errors, we specified the HC3 estimator, as recommended for small samples [@long2000]. Where applicable, pairwise comparisons were obtained with *emmeans* [@lenth2025].
 
-# Results {.mark}
+# Results
 Descriptive statistics of students' pretest scores are presented in [@tbl-participants].
 As expected, students attending the STEM course and students from the control group, which was recruited from pre-service STEM teachers, reported significantly higher ratings in all Intelligent TPACK subscales compared to students attending language course, which predominantly consisted of students not studying a STEM subject as their second subject. We didn't find significant differences between the intervention groups for AI literacy, AI ethics, and perceived usefulness at the pretest.
 
-The descriptive statistics for students’ outcome measures at pretest and posttest by treatment group are shown in [@fig-ai-lit], [@fig-tpack], and [@fig-pu].
+The descriptive statistics for students’ outcome measures at pretest and posttest by treatment group are shown in the top half of [@fig-ai-lit], [@fig-tpack], and [@fig-pu]. On the bottom half of those figures we display the ANCOVA-adjusted predicted posttest scores, with predictions standardized to a common pretest value and adjusted for gender and semester count.
 
 For all outcome measures, we first report the main effect of treatment condition on posttest scores after adjusting for pretest scores, gender, and semester count. We then report the planned contrasts comparing the control group with the intervention groups and, subsequently, the contrast between the two intervention groups (STEM vs. language course).
 
@@ -430,6 +438,28 @@ data_wide <- data %>%
     ))
   )
 
+data_wide_unscaled <- data %>%
+  pivot_wider(
+    id_cols = c(
+      code,
+      intervention,
+      group,
+      gender,
+      semester,
+      students,
+      location
+    ),
+    names_from = time,
+    values_from = all_of(outcomes)
+  ) %>%
+  mutate(
+    treatment = factor(ifelse(
+      intervention == "control",
+      "control",
+      "intervention"
+    ))
+  )
+
 contrasts.treatment <- cbind(c(-1 / 2, 1 / 2))
 colnames(contrasts.treatment) <- c("-c+t")
 contrasts(data_wide$treatment) <- contrasts.treatment
@@ -447,6 +477,17 @@ names(ancovas) <- outcomes
 tc2 <- nrow(summary(ancovas[[1]])$coefficients)
 tc1 <- tc2 - 1
 
+ancovas_unscaled <- lapply(
+  outcomes,
+  fit_ancova,
+  groups,
+  # we remove University as a covariate as we only have control students at University 2
+  setdiff(controls, "location"),
+  "HC3",
+  data_wide_unscaled
+)
+names(ancovas_unscaled) <- outcomes
+
 ancovas_two_groups <- lapply(
   outcomes,
   fit_ancova,
@@ -459,35 +500,80 @@ names(ancovas_two_groups) <- outcomes
 ```
 
 ## AI Literacy
-Descriptive results of students' AI literacy scores are shown in [@fig-ai-lit], and the results of the ANCOVA models are listed in [@tbl-ancova-ailit-summary].
+Descriptive results of students' AI literacy scores are shown in the top half of [@fig-ai-lit] with the ANCOVA-adjusted predicted posttest scores, with predictions standardized to a common pretest value and adjusted for gender and semester count, underneath. The results of the ANCOVA models are listed in [@tbl-ancova-ailit-summary].
 
-```{r fig-ai-lit, echo=FALSE, fig.cap="Descriptive Statistics of Students' AI Literacy Scores Over Time by Treatment Group.", out.width="80%",fig.width=6, fig.height=4.5}
-plot_outcome(
-  data_long %>%
-    filter(outcome %in% c("AILIT", "AILITWolke")) %>%
-    mutate(
-      outcome = factor(
-        outcome,
-        levels = c("AILIT", "AILITWolke"),
-        labels = c("AI Literacy - Full Scale", "AI Literacy - Study-Specific")
-      )
-    ),
+::: {.callout-note}
+Mit dem aktuellen Setup kann ich die y-achse zwischen den subscales nicht unterschiedlich setzen. Nur gesamt für eine Reihe ist das möglich. Ist das essentiell? Ich finde so erzählts auch schon ne ganz gute story
+
+:::
+
+```{r fig-ai-lit, echo=FALSE, fig.cap="Descriptive Statistics of Students' AI Literacy Scores Over Time by Treatment Group.", out.width="80%",fig.width=6, fig.height=6.5}
+#| warning: false
+#| message: false
+outcomes_ailit <- c("AILIT", "AILITwolke")
+# Define outcome scale labels
+ailit_labels <- c(
+  AILIT = "Full Scale",
+  AILITwolke = "Study Specific"
+)
+
+# Prepare data: compute predictions + reshape to long format
+data_ailit_plot_long_individual <- prepare_comparison_data(
+  data_wide_unscaled,
+  outcomes_ailit,
+  ailit_labels,
+  ancovas_unscaled
+)
+
+# Get sample size
+n_ailit <- data_long %>%
+  filter(outcome %in% outcomes_ailit) %>%
+  filter(!is.na(score)) %>%
+  summarise(n = n_distinct(code)) %>%
+  pull(n)
+
+# Raw data plot
+p_ailit_raw <- plot_facet_outcome(
+  data_long %>% filter(str_detect(outcome, "^AILIT(wolke)?$")),
+  ncol = 2,
+  outcome_labels = ailit_labels,
+  y_title = "Score",
+  y_zoom = NULL,
+  show_legend = FALSE,
+  show_strip_labels = TRUE,
+  plot_title = "AI Literacy",
+  plot_subtitle = paste0("N = ", n_ailit),
+  error_bars = TRUE,
+  show_n_per_facet = FALSE,
   ylab = "Score"
-) +
-  ggtitle("AI Literacy") +
-  theme(legend.position = "bottom")
+)
 
-#p_ailit %+% + facet_wrap(~outcome, ncol =2, scales="free")  + labs(y = "Score")  + theme(legend.position = "bottom")
+# Predicted adjusted data plot
+p_ailit_pred <- plot_facet_outcome(
+  data_ailit_plot_long_individual,
+  ncol = 2,
+  outcome_labels = NULL, # Hide labels in row 2
+  y_title = "ANCOVA adj. score",
+  y_zoom = NULL,
+  show_legend = TRUE,
+  show_strip_labels = FALSE,
+  plot_title = NULL,
+  plot_subtitle = NULL,
+  error_bars = FALSE,
+  show_n_per_facet = FALSE,
+  ylab = "Score"
+)
 
-# TODO: auch AI Lit Short für Online Supplement
+# Combine and display
+combine_raw_pred_plots(p_ailit_raw, p_ailit_pred)
 ```
 
 ```{r tab.layout="autofit"}
 #| label: tbl-ancova-ailit-summary
 #| tbl-cap: "ANCOVA results for scaled posttest AI Literacy (full scale and WOLKE study-specific subset), adjusted for pretest, gender, and semester count."
 ft_ailit_ancova <- modelsummary_models(
-  ancovas[names(ancovas) %in% c("AILIT", "AILITWolke")],
-  outcomes = c("AILIT", "AILITWolke"),
+  ancovas[names(ancovas) %in% c("AILIT", "AILITwolke")],
+  outcomes = c("AILIT", "AILITwolke"),
   output = modelsummary_output,
   # coef_rename = c("genderMännlich" = "Geschlecht")
 ) # %>%   kableExtra::scroll_box(width = "100%")
@@ -499,12 +585,12 @@ ft_ailit_ancova
 ```
 
 ### AI Literacy -- Full Scale
-We did not find a significant effect of treatment condition on students’ knowledge gains in AI literacy, `r report_beta(ancovas[[1]], "intervention-c+STEM_language")`. Likewise, the differencein knowledge gains between the two intervention groups was not statistically significant, `r report_beta(ancovas[[1]], "intervention-STEM+language")`, but the estimate suggested a tendency toward a small-to-moderate effect for the STEM group.
+For the full AI literacy scale, students in the intervention groups did not show significantly greater improvement than students in the control group, `r report_beta(ancovas[[1]], "intervention-c+STEM_language")`. The two intervention groups also did not differ significantly from each other, `r report_beta(ancovas[[1]], "intervention-STEM+language")`, although the estimate suggested a small-to-moderate advantage for the STEM group.
 
 However, as can be seen in [@fig-ai-lit], students in all conditions showed descriptively higher AI literacy at posttest, with the strongest increase observed among pre-service STEM teachers.
 
 ### AI Literacy -- Study-Specific Subset
-For the study-specific subset of the AI literacy items, we found a significant medium-sized effect of treatment condition on students’ increased AI literacy score in favor of the intervention groups, `r report_beta(ancovas[[2]], "intervention-c+STEM_language")`. In addition, we found a significant medium-sized difference between the two intervention groups in favor of the STEM group, `r report_beta(ancovas[[2]], "intervention-STEM+language")`.
+For the study-specific subset of the AI literacy items, students in the intervention groups showed significantly greater improvement in their knowledge than students in the control group, `r report_beta(ancovas[[2]], "intervention-c+STEM_language")`, indicating a medium-sized positive effect in favor of the intervention groups. In addition, the two intervention groups differed significantly, `r report_beta(ancovas[[2]], "intervention-STEM+language")`, with the estimate indicating a medium-sized advantage for the STEM group.
 
 ```{r, results="asis"}
 if (!is_word) {
@@ -526,29 +612,70 @@ if (!is_word) {
 As can be seen in [@fig-ai-lit], students in both intervention groups showed descriptively higher AI literacy scores than students in the control group. Post-hoc contrasts showed that students in the STEM course scored significantly higher on the study-specific AI literacy subset than students in the control group, `r report_contrast_beta(ailit_ancova_between_contrasts[[2]], 1)`, indicating a large effect in favor of the STEM group, whereas the difference between students in the language course and the control group was not statistically significant, `r report_contrast_beta(ailit_ancova_between_contrasts[[2]], 2)`.
 
 ## Intelligent TPACK and AI Ethics
-The descriptive results of students' ratings of perceived knowledge in Intelligent TPACK and AI ethics are shown in [@fig-tpack], and [@tbl-ancova-tpack-summary] lists the results of the ANCOVA. As can be seen in [@fig-tpack], all pre-service teachers reported their intelligent TPACK knowledge to be around or below the middle of the scale at the pretest, while the intervention groups reported, on average, values significantly higher than the middle value of the scale at the posttest.
+The descriptive results of students' ratings of perceived knowledge in Intelligent TPACK and AI ethics as well as the ANCOVA-adjusted predicted posttest ratings are shown in [@fig-tpack], and [@tbl-ancova-tpack-summary] lists the results of the ANCOVA. As can be seen in [@fig-tpack], all pre-service teachers reported their intelligent TPACK knowledge to be around or below the middle of the scale at the pretest, while the intervention groups reported, on average, values significantly higher than the middle value of the scale at the posttest.
 
-For all subscales related to Intelligent TPACK, namely Intelligent TK, Intelligent TPK, Intelligent TCK, Intelligent TPACK, and AI ethics, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in both intervention groups reported significantly higher posttest ratings than students in the control group on the Intelligent TPACK-related subscales, whereas the two intervention groups did not differ significantly from each other, see [@tbl-ancova-tpack-summary] for an overview, with the exception of the Intelligent TCK subscale.
-
+Across all subscales related to Intelligent TPACK, namely Intelligent TK, Intelligent TPK, Intelligent TCK, Intelligent TPACK, and AI ethics, students in the intervention groups reported significantly greater improvements than students in the control group. These effects were reflected in significantly higher pretest-adjusted posttest ratings for both intervention groups compared with the control group. The two intervention groups did not differ significantly from each other, with the exception of the Intelligent TCK subscale, for which students in the STEM group reported significantly greater improvement than students in the language group, see [@tbl-ancova-tpack-summary].
 ```{r fig-tpack, echo=FALSE, fig.cap="Descriptive Statistics of Students' Intelligent TPACK and AI Ethics Ratings Over Time by Treatment Group.", out.width="100%",fig.width=7, fig.height=6.5}
-p_tpack +
-  facet_wrap(
-    ~outcome,
-    scales = "fixed",
-    ncol = 3,
-    labeller = labeller(
-      outcome = c(
-        TK = "Intelligent TK",
-        TCK = "Intelligent TCK",
-        TPK = "Intelligent TPK",
-        TPACKce = "Intelligent TPACK - Core",
-        TPACKgenai = "iTPACK - Generative AI",
-        Ethics = "AI Ethics"
-      )
-    )
-  ) +
-  ggtitle("Intelligent TPACK and AI Ethics") +
-  theme(legend.position = "bottom")
+#| warning: false
+#| message: false
+outcomes_tpack <- c("TK", "TPK", "TCK", "TPACKce", "TPACKgenai", "Ethics")
+# Define outcome scale labels
+tpack_labels <- c(
+  TK = "iTK",
+  TPK = "iTPK",
+  TCK = "iTCK",
+  TPACKce = "iTPACK-Core",
+  TPACKgenai = "iTPACK - GenAI",
+  Ethics = "AI Ethics"
+)
+
+# Prepare data: compute predictions + reshape to long format
+data_tpack_plot_long_individual <- prepare_comparison_data(
+  data_wide_unscaled,
+  outcomes_tpack,
+  tpack_labels,
+  ancovas_unscaled
+)
+
+# Get sample size
+n_tpack <- data_long %>%
+  filter(outcome %in% outcomes_tpack) %>%
+  filter(!is.na(score)) %>%
+  summarise(n = n_distinct(code)) %>%
+  pull(n)
+
+# Raw data plot
+p_tpack_raw <- plot_facet_outcome(
+  data_long %>% filter(str_detect(outcome, "^(T|Ethics)")),
+  ncol = 6,
+  outcome_labels = tpack_labels,
+  y_title = "Rating",
+  y_zoom = c(1.5, 4.5),
+  show_legend = FALSE,
+  show_strip_labels = TRUE,
+  plot_title = "Intelligent TPACK and AI Ethics",
+  plot_subtitle = paste0("N = ", n_tpack),
+  error_bars = TRUE
+  # show_n_per_facet = TRUE
+)
+
+# Predicted adjusted data plot
+p_tpack_pred <- plot_facet_outcome(
+  data_tpack_plot_long_individual,
+  ncol = 6,
+  outcome_labels = NULL, # Hide labels in row 2
+  y_title = "ANCOVA adj. rating",
+  y_zoom = c(1.5, 4.5),
+  show_legend = TRUE,
+  show_strip_labels = FALSE,
+  plot_title = NULL,
+  plot_subtitle = NULL,
+  error_bars = FALSE
+  # show_n_per_facet = TRUE
+)
+
+# Combine and display
+combine_raw_pred_plots(p_tpack_raw, p_tpack_pred)
 ```
 
 ::: {.landscape}
@@ -571,43 +698,87 @@ ft_ancova
 :::
 
 ### Intelligent TK
-For Intelligent TK, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in the intervention groups reported significantly higher posttest ratings than students in the control group, `r report_beta(ancovas[["TK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TK"]], "intervention-STEM+language")`.
-
+For Intelligent TK, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["TK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. The two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TK"]], "intervention-STEM+language")`.
 
 ### Intelligent TPK
-For Intelligent TPK, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in the intervention groups reported significantly higher posttest ratings than students in the control group, `r report_beta(ancovas[["TPK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPK"]], "intervention-STEM+language")`, although the estimate suggested a small-to-moderate advantage for the STEM group.
+For Intelligent TPK, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["TPK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. The two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPK"]], "intervention-STEM+language")`.
 
 ### Intelligent TCK
-For Intelligent TCK, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in the intervention groups reported significantly higher posttest ratings than students in the control group, `r report_beta(ancovas[["TCK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. Notably, this was the only subscale for which the two intervention groups also differed significantly, `r report_beta(ancovas[["TCK"]], "intervention-STEM+language")`, with the estimate indicating a medium-sized advantage for the STEM group.
+For Intelligent TCK, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["TCK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. Notably, this was the only subscale for which the two intervention groups also differed significantly, `r report_beta(ancovas[["TCK"]], "intervention-STEM+language")`, with the estimate indicating a medium-sized advantage for the STEM group.
 
 ### Intelligent TPACK Core
-For the Intelligent TPACK core subscale, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in the intervention groups reported significantly higher posttest ratings than students in the control group, `r report_beta(ancovas[["TPACKce"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPACKce"]], "intervention-STEM+language")`.
+For the Intelligent TPACK core subscale, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["TPACKce"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. The two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPACKce"]], "intervention-STEM+language")`.
 
 ### Intelligent TPACK (GenAI)
-For Intelligent TPACK related to GenAI, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in the intervention groups reported significantly higher posttest ratings than students in the control group, `r report_beta(ancovas[["TPACKgenai"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPACKgenai"]], "intervention-STEM+language")`, although the estimate suggested a small effect in favor of the STEM group.
+For Intelligent TPACK related to GenAI, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["TPACKgenai"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. The two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPACKgenai"]], "intervention-STEM+language")`.
 
 ### AI Ethics
-For ethics, we found a significant effect of treatment condition on students’ self-reported posttest ratings. Students in the intervention groups reported significantly higher posttest ratings than students in the control group, `r report_beta(ancovas[["Ethics"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups, whereas the two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["Ethics"]], "intervention-STEM+language")`.
+For AI ethics, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["Ethics"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. The two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["Ethics"]], "intervention-STEM+language")`.
 
 
 ## Perceived Usefulness
-Descriptive results of pre-service teacher students' perceived usefulness of AI in their teaching are listed in [@fig-pu], while the results of the ANCOVA analysis for perceived usefulness are presented in [@tbl-ancova-pu-summary].
+Descriptive results of pre-service teacher students' perceived usefulness of AI in their teaching as well as the ANCOVA-adjusted posttest ratings are listed in [@fig-pu], while the results of the ANCOVA analysis for perceived usefulness are presented in [@tbl-ancova-pu-summary].
 
-```{r fig-pu, echo=FALSE, fig.cap="Descriptive Statistics of Students' Perceived Usefulness Ratings Over Time by Treatment Group.", out.width="100%",fig.width=7, fig.height=6}
-p_pu +
-  facet_wrap(
-    ~outcome,
-    ncol = 3,
-    scales = "fixed",
-    labeller = as_labeller(c(
-      "PU" = "PU: Perceived Usefulness",
-      "PU1" = "PU1: Increases Teaching Quality",
-      "PU2" = "PU2: Reduces Workload",
-      "PU3" = "PU3: Increases Effectiveness",
-      "PU4" = "PU4: Usefulness for Work"
-    ))
-  ) +
-  labs(y = "Rating") # + theme(legend.position = "bottom")
+```{r fig-pu, echo=FALSE, fig.cap="Descriptive Statistics of Students' Perceived Usefulness Ratings Over Time by Treatment Group.", out.width="100%",fig.width=7, fig.height=6.5}
+#| warning: false
+#| message: false
+outcomes_pu <- c("PU", "PU1", "PU2", "PU3", "PU4")
+# Define outcome scale labels
+pu_labels <- c(
+  PU = "Full Scale",
+  PU1 = "PU1: \nIncreases \nTeaching Quality",
+  PU2 = "PU2: \nReduces Workload",
+  PU3 = "PU3: \nIncreases \nEffectiveness",
+  PU4 = "PU4: \nUsefulness for Work"
+)
+
+# Prepare data: compute predictions + reshape to long format
+data_pu_long_individual <- prepare_comparison_data(
+  data_wide_unscaled,
+  outcomes_pu,
+  pu_labels,
+  ancovas_unscaled
+)
+
+# Get sample size
+n_pu <- data_long %>%
+  filter(outcome %in% outcomes_pu) %>%
+  filter(!is.na(score)) %>%
+  summarise(n = n_distinct(code)) %>%
+  pull(n)
+
+# Raw data plot
+p_pu_raw <- plot_facet_outcome(
+  data_long %>% filter(str_detect(outcome, "^(PU)")),
+  ncol = 5,
+  outcome_labels = pu_labels,
+  y_title = "Rating",
+  y_zoom = c(3.3, 4.8),
+  show_legend = FALSE,
+  show_strip_labels = TRUE,
+  plot_title = "Perceived Usefulness",
+  plot_subtitle = paste0("N = ", n_pu),
+  error_bars = TRUE
+  # show_n_per_facet = TRUE
+)
+
+# Predicted adjusted data plot
+p_pu_pred <- plot_facet_outcome(
+  data_pu_long_individual,
+  ncol = 6,
+  outcome_labels = NULL, # Hide labels in row 2
+  y_title = "ANCOVA adj. rating",
+  y_zoom = c(3.3, 4.8),
+  show_legend = TRUE,
+  show_strip_labels = FALSE,
+  plot_title = NULL,
+  plot_subtitle = NULL,
+  error_bars = FALSE
+  # show_n_per_facet = TRUE
+)
+
+# Combine and display
+combine_raw_pred_plots(p_pu_raw, p_pu_pred)
 ```
 
 
@@ -630,7 +801,13 @@ ft_pu_ancova
 
 :::
 
-For the overall perceived usefulness, we did not find a significant effect of treatment condition on students’ rating of their perceived usefulness at posttest. Neither did the control group differ significantly from both intervention groups, `r report_beta(ancovas[["PU"]], "intervention-c+STEM_language")`, nor was there a significance difference between the two intervention groups, `r report_beta(ancovas[["PU"]], "intervention-STEM+language")`. For an overview on the ANCOVA results, see [@tbl-ancova-pu-summary].
+::: {.callout-note}
+
+Ich spreche bei der PU nicht von "improvement" weil ich finde das passend nicht. Kann man es so formulieren wie ich es gerade habe?
+
+:::
+
+For overall perceived usefulness, we did not find a significant effect of treatment condition on students’ perceived usefulness ratings. Students in the intervention groups did not differ significantly from students in the control group in their pretest-adjusted posttest ratings, `r report_beta(ancovas[["PU"]], "intervention-c+STEM_language")`. The two intervention groups also did not differ significantly from each other, `r report_beta(ancovas[["PU"]], "intervention-STEM+language")`. For an overview of the ANCOVA results, see [@tbl-ancova-pu-summary].
 
 ```{r  pu - contrasts}
 pu_between_contrasts <- lapply(
@@ -645,7 +822,7 @@ if (!is_word) {
 }
 ```
 
-When investigating the individual items of the perceived usefulness scale, we did not find any significant differences between the control, stem or language groups for items *PU1* and *PU2*. For item *PU3* we see a tendency of a medium effect between the intervention groups `r report_contrast_beta(pu_between_contrasts[[4]], 3)`, and for the same comparison for item *PU4* a significant difference, `r report_contrast_beta(pu_between_contrasts[[5]], 3)`, indicating a medium-sized effect.
+When investigating the individual items of the perceived usefulness scale, we did not find any significant differences between the control and intervention group for all items. For item *PU3* we see a tendency of a medium effect between the intervention groups `r report_contrast_beta(pu_between_contrasts[[4]], 3)`, and for the same comparison on item *PU4* a significant difference, `r report_contrast_beta(pu_between_contrasts[[5]], 3)`, indicating a medium-sized effect.
 
 ## Two-Groups Ancova
 ::: {.callout-note}
