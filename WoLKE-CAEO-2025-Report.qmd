@@ -354,11 +354,15 @@ For this, we applied the *Modified Direct Translation* that includes translators
 The translation and validation of the Intelligent-TPACK is reported in detail in @authorsinprep.
 
 ## Analysis 
-We analyzed the efficacy of the interventions using a multiple linear regression approach. Specifically, we implemented a one-way ANCOVA for each outcome measure, predicting posttest scores from treatment condition while controlling for pretest scores, gender, and semester count, in line with our three-group factorial design.
+::: {.callout-note}
 
-Additionally, we included the respective pretest score of the outcome measures as a covariate in the analyses.
-Finally, we included variables as a covariate if they met the criteria for baseline equivalence in randomized controlled trials by the What Works Clearinghouse [@WWC2022]. That is, we included the variables as covariates if the difference between the groups was statistically significant, or if it exceeded $d>.05$.
-We tested for group differences concerning the following variables at baseline (pretest): age, gender, semester, and study level (Bachelor vs. Master). We found for gender and semesters  statistically significant differences between the treamtment groups, see [@tbl-participants]. We thus included the following covariates in the models: gender and semester.
+Mixen wir manchmal treatment und intervention?
+
+:::
+
+To examine the efficacy of the interventions, we conducted separate ANCOVA models for each outcome measure. In each model, posttest scores were regressed on treatment condition while controlling for the respective pretest score, gender, and semester count, consistent with our three-group pretest–posttest design.
+
+Following the baseline equivalence criteria for randomized controlled trials proposed by the What Works Clearinghouse [@WWC2022], we additionally considered baseline variables as covariates if group differences were statistically significant or if the standardized mean difference exceeded $d = .05$. We tested for baseline differences between treatment groups in age, gender, semester count, and study level (Bachelor’s vs. Master’s). Statistically significant group differences were found for gender and semester count; therefore, these variables were included as covariates in all models (see [@tbl-participants]).
 
 That is, the final model for each outcome measure contained treatment, pretest score, gender, semester, and University as fixed effects, and was specified as follows:
 `lm_robust(outcome_post ~ treatment + outcome_pre + gender + semester )`.
@@ -584,14 +588,6 @@ if (is_word) {
 ft_ailit_ancova
 ```
 
-### AI Literacy -- Full Scale
-For the full AI literacy scale, students in the intervention groups did not show significantly greater improvement than students in the control group, `r report_beta(ancovas[[1]], "intervention-c+STEM_language")`. The two intervention groups also did not differ significantly from each other, `r report_beta(ancovas[[1]], "intervention-STEM+language")`, although the estimate suggested a small-to-moderate advantage for the STEM group.
-
-However, as can be seen in [@fig-ai-lit], students in all conditions showed descriptively higher AI literacy at posttest, with the strongest increase observed among pre-service STEM teachers.
-
-### AI Literacy -- Study-Specific Subset
-For the study-specific subset of the AI literacy items, students in the intervention groups showed significantly greater improvement in their knowledge than students in the control group, `r report_beta(ancovas[[2]], "intervention-c+STEM_language")`, indicating a medium-sized positive effect in favor of the intervention groups. In addition, the two intervention groups differed significantly, `r report_beta(ancovas[[2]], "intervention-STEM+language")`, with the estimate indicating a medium-sized advantage for the STEM group.
-
 ```{r, results="asis"}
 if (!is_word) {
   cat("#### Pairwise Contrasts Between Groups")
@@ -608,6 +604,16 @@ if (!is_word) {
   print(ailit_ancova_between_contrasts)
 }
 ```
+
+### AI Literacy -- Full Scale
+For the full AI literacy scale, students in the intervention groups did not show significantly greater improvement than students in the control group, `r report_beta(ancovas[[1]], "intervention-c+STEM_language")`. The two intervention groups also did not differ significantly from each other, `r report_beta(ancovas[[1]], "intervention-STEM+language")`, although the estimate suggested a small-to-moderate advantage for the STEM group. 
+
+Looking at the post-hoc contrasts, the contrast between the control and STEM groups was marginally significant, `r report_contrast_beta(ailit_ancova_between_contrasts[[1]], 1)`, indicating a small-to-moderate effect in favor of the STEM group. Similarly, the STEM group tended to score higher than the language group, `r report_contrast_beta(ailit_ancova_between_contrasts[[1]], 3)`, indicating a small-to-moderate effect.
+
+However, as can be seen in [@fig-ai-lit], students in all conditions showed descriptively higher AI literacy at posttest, with the strongest increase observed among pre-service STEM teachers.
+
+### AI Literacy -- Study-Specific Subset
+For the study-specific subset of the AI literacy items, students in the intervention groups showed significantly greater improvement in their knowledge than students in the control group, `r report_beta(ancovas[[2]], "intervention-c+STEM_language")`, indicating a medium-sized positive effect in favor of the intervention groups. In addition, the two intervention groups differed significantly, `r report_beta(ancovas[[2]], "intervention-STEM+language")`, with the estimate indicating a medium-sized advantage for the STEM group.
 
 As can be seen in [@fig-ai-lit], students in both intervention groups showed descriptively higher AI literacy scores than students in the control group. Post-hoc contrasts showed that students in the STEM course scored significantly higher on the study-specific AI literacy subset than students in the control group, `r report_contrast_beta(ailit_ancova_between_contrasts[[2]], 1)`, indicating a large effect in favor of the STEM group, whereas the difference between students in the language course and the control group was not statistically significant, `r report_contrast_beta(ailit_ancova_between_contrasts[[2]], 2)`.
 
@@ -701,7 +707,7 @@ ft_ancova
 For Intelligent TK, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["TK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. The two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TK"]], "intervention-STEM+language")`.
 
 ### Intelligent TPK
-For Intelligent TPK, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["TPK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. The two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPK"]], "intervention-STEM+language")`.
+For Intelligent TPK, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["TPK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. The two intervention groups did not differ significantly from each other, although the effect approached significance, `r report_beta(ancovas[["TPK"]], "intervention-STEM+language")`, suggesting a small-to-moderate advantage for the language group.
 
 ### Intelligent TCK
 For Intelligent TCK, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["TCK"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. Notably, this was the only subscale for which the two intervention groups also differed significantly, `r report_beta(ancovas[["TCK"]], "intervention-STEM+language")`, with the estimate indicating a medium-sized advantage for the STEM group.
@@ -710,7 +716,7 @@ For Intelligent TCK, students in the intervention groups reported significantly 
 For the Intelligent TPACK core subscale, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["TPACKce"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. The two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPACKce"]], "intervention-STEM+language")`.
 
 ### Intelligent TPACK (GenAI)
-For Intelligent TPACK related to GenAI, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["TPACKgenai"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. The two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["TPACKgenai"]], "intervention-STEM+language")`.
+For Intelligent TPACK related to GenAI, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["TPACKgenai"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. The two intervention groups did not differ significantly from each other, although the effect approached significance, `r report_beta(ancovas[["TPACKgenai"]], "intervention-STEM+language")`, suggesting a small-to-moderate advantage for the language group.
 
 ### AI Ethics
 For AI ethics, students in the intervention groups reported significantly greater improvement than students in the control group, `r report_beta(ancovas[["Ethics"]], "intervention-c+STEM_language")`, indicating a large positive effect in favor of the intervention groups. The two intervention groups did not differ significantly from each other, `r report_beta(ancovas[["Ethics"]], "intervention-STEM+language")`.
@@ -822,7 +828,7 @@ if (!is_word) {
 }
 ```
 
-When investigating the individual items of the perceived usefulness scale, we did not find any significant differences between the control and intervention group for all items. For item *PU3* we see a tendency of a medium effect between the intervention groups `r report_contrast_beta(pu_between_contrasts[[4]], 3)`, and for the same comparison on item *PU4* a significant difference, `r report_contrast_beta(pu_between_contrasts[[5]], 3)`, indicating a medium-sized effect.
+When investigating the individual items of the perceived usefulness scale, we did not find any significant differences between the control and intervention groups for any of the items. For item PU3, we observed a tendency toward a medium-sized effect between the intervention groups, `r report_contrast_beta(pu_between_contrasts[[4]], 3)`, with higher values in the STEM group than in the language group. For the same comparison on item PU4, we found a significant difference, `r report_contrast_beta(pu_between_contrasts[[5]], 3)`, again indicating a medium-sized effect in favor of the STEM group.
 
 ## Two-Groups Ancova
 ::: {.callout-note}
